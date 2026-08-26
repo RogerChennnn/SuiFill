@@ -23,4 +23,11 @@ The responsible-disclosure contact will be added before public release. Until th
 - The filler contains no form submission, page-control click, or navigation call.
 - Per-site rules, including hostnames and field signatures, are encrypted at rest and never apply outside an exact normalized hostname.
 
+## Backup and deletion boundary
+
+- Backup exports contain only the encrypted envelope and version metadata.
+- Imports are size-bounded, schema-validated, password-verified, and require a second replacement confirmation.
+- Password rotation uses a new random salt and non-extractable key.
+- Local deletion requires a typed confirmation phrase and removes the persisted encrypted envelope.
+
 The PBKDF2 work factor follows the OWASP Password Storage Cheat Sheet baseline for PBKDF2-HMAC-SHA-256: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html

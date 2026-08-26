@@ -1,17 +1,53 @@
-# Privacy notice draft
+# SuiFill Privacy Notice
 
-SuiFill is a local-first browser extension. The M6 build also lets the user correct unusual fields for one website. Those per-site mappings are encrypted with the rest of the vault and are applied only to the same normalized hostname.
+Effective date: 2026-08-27
 
-Presets store only local record identifiers, not duplicate copies of the selected personal information. Deleting a source record removes its reference from affected presets before the vault is encrypted again.
+SuiFill is a local-first browser extension for managing multiple sets of personal information and filling a user-reviewed selection into the current web page. This notice describes the data boundary implemented by the open-source extension.
 
-The master password is used locally to derive a non-extractable encryption key. The password and key are not persisted or transmitted. Personal information is encrypted before it is written to browser extension storage. Only the encrypted vault envelope, its random salt, its random initialization vector, algorithm metadata, version, and timestamps remain there while the vault is locked.
+## What SuiFill stores
 
-Custom fields have an explicit sensitivity level. Level-three fields are always excluded from default bulk filling, even if imported or modified outside the user interface. This is enforced by schema validation and data normalization.
+The user may enter identity details, contact details, addresses, custom fields, scenario presets, and per-site field mappings. All of this content, including site-rule hostnames and field signatures, is kept inside one authenticated encrypted vault in browser extension storage.
 
-SuiFill has no server, account, analytics, advertising, or remote runtime resources. The final notice will expand as page-access, export, and deletion features are implemented.
+The stored envelope contains AES-GCM ciphertext plus the random salt, random initialization vector, algorithm metadata, format versions, and timestamps needed to unlock it. The master password and derived encryption key are never persisted or transmitted.
 
-Page scanning runs only after the user presses the scan button. The scanner reads field structure such as labels, names, input types, autocomplete hints, and limited accessibility metadata. It never reads the current value of an input, select, or textarea. Scan results remain in side-panel memory, are not added to the encrypted vault, and disappear when the panel closes or the vault locks.
+## Local processing and network use
 
-During filling, only the value and bounded locator for each item the user checked are injected into the exact tab and page document that was scanned. The page receives neither the vault nor the selected preset. Existing non-empty fields are skipped without returning their contents. High-sensitivity and low-confidence items are disabled by default and require individual selection.
+SuiFill has no server, account system, analytics, advertising, telemetry, or remote runtime code. It does not send the vault, password, browsing history, form structure, scan results, or usage events to the developer or another service.
 
-A site rule may contain a hostname, bounded field signatures, and references to standard or custom data fields. It does not contain a copy of the selected personal-data value. Deleting a referenced custom field automatically removes affected mappings before the vault is encrypted again.
+The extension requests no persistent access to all websites. Page access is temporary and begins only after a user invokes the extension and presses the scan or fill control.
+
+## Page scanning
+
+The scanner reads bounded structural metadata from visible, editable form controls: labels, field names and IDs, input types, autocomplete hints, placeholders, and limited accessibility labels. It skips password, hidden, file, button, checkbox, radio, disabled, read-only, and invisible controls.
+
+The scanner never reads the current value of an input, select, or textarea. Scan results remain in side-panel memory and disappear when the panel closes, reloads, or locks.
+
+## Review and filling
+
+SuiFill creates a per-field preview in extension memory. High-sensitivity, default-disabled, and low-confidence items require individual selection. Only the value and bounded locator for each checked item are injected into the exact tab and page document that was scanned; the page never receives the vault or preset.
+
+The filler does not overwrite non-empty fields and contains no form-submit, page-control click, purchase, registration, navigation, or next-step operation. After filling, the destination page can read those values just as it can read information typed manually. The user is responsible for reviewing the destination site's own privacy practices before continuing.
+
+## Per-site rules
+
+Optional site rules store a normalized hostname, bounded field signatures, and references to standard or custom data fields. They do not duplicate the referenced personal-data value. Rules are encrypted at rest and apply only to the exact hostname.
+
+## Backups, password changes, and deletion
+
+Exported `.suifill` backups remain encrypted and require the master password that was active when they were created. SuiFill cannot recover a forgotten password and has no recovery key or backdoor. A backup is validated and unlocked before the user can confirm replacement of the current vault.
+
+Changing the master password derives a new key with a new random salt and re-encrypts the vault. Old backups continue to require their old password.
+
+The user can permanently remove the local encrypted vault from the extension. This cannot delete copies the user previously exported or values already sent to a destination website.
+
+## Retention and user control
+
+Vault data remains in browser extension storage until the user edits it, deletes the vault, clears extension data, or uninstalls the extension according to the browser's behavior. SuiFill does not keep a server-side copy.
+
+## Security limitations
+
+Encryption at rest does not protect data while the vault is unlocked from malware, a compromised browser or operating system, malicious extension updates, physical observation, or a destination page receiving confirmed values. Users should install releases from a trusted source, use a strong unique master password, review fill previews, and keep encrypted backups in a safe location.
+
+## Changes and contact
+
+Material privacy changes must be documented in the repository and release notes before a release. A responsible project contact will be added before public distribution.

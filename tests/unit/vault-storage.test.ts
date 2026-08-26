@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEncryptedVault } from '../../core/vault/crypto';
 import {
+  deleteStoredVault,
   getStoredVault,
   StoredVaultError,
   storeVault,
@@ -44,5 +45,15 @@ describe('encrypted vault storage', () => {
     storage[VAULT_STORAGE_KEY] = { format: 'unexpected' };
 
     await expect(getStoredVault()).rejects.toBeInstanceOf(StoredVaultError);
+  });
+
+  it('permanently removes the local encrypted envelope', async () => {
+    const created = await createEncryptedVault('fictional deletion test password');
+    await storeVault(created.envelope);
+
+    await deleteStoredVault();
+
+    expect(storage[VAULT_STORAGE_KEY]).toBeUndefined();
+    await expect(getStoredVault()).resolves.toBeNull();
   });
 });

@@ -2,7 +2,7 @@
 
 SuiFill is a local-first Chrome/Edge extension for maintaining multiple identity, contact, and address profiles and safely filling a user-confirmed selection into the current page.
 
-The project has completed **M6: encrypted per-site rules**. Users can correct unusual fields for a specific hostname, save those mappings inside the encrypted vault, and apply them before review. Safe fill still requires explicit per-field confirmation and never overwrites or submits.
+The project has completed **M7: security and backup**. It now supports encrypted export, password-verified restore, master-password rotation, permanent local deletion, and a release-oriented privacy and threat review. One release-candidate milestone remains.
 
 ## Privacy baseline
 
@@ -12,6 +12,8 @@ The project has completed **M6: encrypted per-site rules**. Users can correct un
 - No automatic form submission.
 - No automatic overwrite of fields that already contain a value.
 - Only the final user-checked instructions, never the whole vault, reach the page.
+- Exported backups remain encrypted and cannot be restored without their original master password.
+- Users can permanently delete the local encrypted vault.
 - Level-three custom fields cannot be included in default bulk filling.
 - No real personal data in repository fixtures.
 

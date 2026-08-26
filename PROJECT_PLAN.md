@@ -11,7 +11,7 @@ The project is implemented as nine independently verifiable milestones. Only one
 | M4        | DOM scanning, semantic classification, confidence scoring                     | Complete |
 | M5        | Reviewable fill plan and safe field filling without submit                    | Complete |
 | M6        | Encrypted per-site user mapping rules                                         | Complete |
-| M7        | Encrypted backup/restore, deletion, privacy and threat review                 | Pending  |
+| M7        | Encrypted backup/restore, deletion, privacy and threat review                 | Complete |
 | M8        | Compatibility, E2E, accessibility, packaging, release checklist               | Pending  |
 
 See `AGENTS.md` for non-negotiable safety boundaries.

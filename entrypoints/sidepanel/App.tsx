@@ -2,16 +2,23 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { MILESTONES, PROJECT_NAME, getProjectProgress } from '../../core/project';
 import {
   createEncryptedVault,
+  encryptExistingVault,
   resealVault,
   unlockEncryptedVault,
   VaultUnlockError,
   type UnlockedVault,
 } from '../../core/vault/crypto';
-import { getStoredVault, StoredVaultError, storeVault } from '../../core/vault/storage';
+import {
+  deleteStoredVault,
+  getStoredVault,
+  StoredVaultError,
+  storeVault,
+} from '../../core/vault/storage';
 import type { VaultData, VaultEnvelope } from '../../core/vault/schema';
 import { VaultManager } from './VaultManager';
 import { PresetManager } from './PresetManager';
 import { PageScanner } from './PageScanner';
+import { VaultSecurity } from './VaultSecurity';
 
 const AUTO_LOCK_MS = 15 * 60 * 1000;
 const MINIMUM_PASSWORD_LENGTH = 12;
@@ -88,7 +95,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
-  const completedMilestones = 7;
+  const completedMilestones = 8;
   const progress = getProjectProgress(completedMilestones);
 
   useEffect(() => {
@@ -205,6 +212,31 @@ function App() {
     const persistedVault = { ...nextVault, updatedAt: nextEnvelope.updatedAt };
     setEnvelope(nextEnvelope);
     setSession({ ...session, envelope: nextEnvelope, vault: persistedVault });
+  }
+
+  async function restoreVault(unlocked: UnlockedVault) {
+    await storeVault(unlocked.envelope);
+    setEnvelope(unlocked.envelope);
+    setSession(unlocked);
+    setMessage('');
+    setScreen('unlocked');
+  }
+
+  async function rekeyVault(password: string) {
+    if (!session) throw new Error('Vault is locked.');
+    const rekeyed = await encryptExistingVault(session.vault, password);
+    await storeVault(rekeyed.envelope);
+    setEnvelope(rekeyed.envelope);
+    setSession(rekeyed);
+  }
+
+  async function permanentlyDeleteVault() {
+    await deleteStoredVault();
+    setEnvelope(null);
+    setSession(null);
+    clearPasswordFields();
+    setMessage('本机加密信息库已永久删除。你可以创建一个新的空信息库。');
+    setScreen('setup');
   }
 
   function renderVaultCard() {
@@ -343,6 +375,12 @@ function App() {
           <VaultManager vault={session.vault} onSave={persistVault} />
           <PresetManager vault={session.vault} onSave={persistVault} />
           <PageScanner vault={session.vault} onSave={persistVault} />
+          <VaultSecurity
+            envelope={session.envelope}
+            onRestore={restoreVault}
+            onRekey={rekeyVault}
+            onDelete={permanentlyDeleteVault}
+          />
         </>
       )}
 
@@ -374,7 +412,7 @@ function App() {
         <div className="progress-heading">
           <div>
             <p className="eyebrow">BUILD PROGRESS</p>
-            <h2 id="progress-title">第 7 步，共 {MILESTONES.length} 步</h2>
+            <h2 id="progress-title">第 8 步，共 {MILESTONES.length} 步</h2>
           </div>
           <strong>{progress}%</strong>
         </div>
@@ -393,8 +431,8 @@ function App() {
             <Icon name="check" />
           </span>
           <div>
-            <strong>{MILESTONES[6]}</strong>
-            <p>按域名加密保存人工字段映射，并优先于自动识别</p>
+            <strong>{MILESTONES[7]}</strong>
+            <p>密文备份恢复、主密码轮换、永久删除与隐私复核</p>
           </div>
         </div>
       </section>

@@ -18,3 +18,5 @@ M4 adds table-driven unit coverage for standard autocomplete tokens, input types
 M5 adds unit coverage for preset-to-field resolution, address/contact precedence, custom alias matching, empty-source exclusion, low-confidence defaults, and level-three explicit confirmation. Production checks also reject submit, requestSubmit, and click calls in the injected filler.
 
 M6 adds unit coverage for hostname isolation, semantic overrides, direct custom-field mapping, preset membership, dangling-reference rejection, and automatic cleanup when a custom field is deleted.
+
+M7 adds unit coverage for encrypted backup serialization/restore, malformed backup rejection, password rotation, old-password rejection, new random salt, and permanent local storage deletion.

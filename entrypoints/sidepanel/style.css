@@ -1088,6 +1088,115 @@ h2 {
   line-height: 1.5;
 }
 
+.security-message {
+  margin-top: 12px;
+  padding: 9px 10px;
+  border: 1px solid #cfded4;
+  border-radius: 10px;
+  color: #365442;
+  background: #f1f8f3;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.security-section {
+  margin-top: 13px;
+  padding: 13px;
+  border: 1px solid #e0e6e2;
+  border-radius: 14px;
+  background: #fbfcfb;
+}
+
+.security-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.security-section-heading strong {
+  color: #2b3e34;
+  font-size: 12px;
+}
+
+.security-section-heading p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.file-picker {
+  display: flex;
+  min-height: 39px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 11px;
+  border: 1px dashed #b9c9bf;
+  border-radius: 10px;
+  color: #456052;
+  background: #f5f9f6;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.file-picker:hover {
+  border-color: #8fab98;
+  background: #eff7f1;
+}
+
+.file-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.file-picker span {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.restore-form,
+.rekey-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 11px;
+}
+
+.restore-form .secondary-button,
+.rekey-form .secondary-button {
+  width: 100%;
+}
+
+.danger-zone {
+  border-color: #eccac5;
+  background: #fffafa;
+}
+
+.danger-zone .field {
+  margin-top: 11px;
+}
+
+.delete-vault-button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.delete-vault-button:disabled {
+  color: #a88783;
+  border-color: #eadbd9;
+  background: #f3eeee;
+  cursor: not-allowed;
+}
+
 .detected-copy strong {
   color: #2c3d34;
   font-size: 11px;

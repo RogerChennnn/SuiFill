@@ -22,6 +22,8 @@
 - The target page can read values after they are filled, just as it can read manually typed values.
 - Per-site hostnames and field signatures are encrypted at rest; exact-hostname matching prevents a rule from applying to sibling or unrelated domains.
 - Site-rule custom references are validated and automatically removed if their source field is deleted.
+- Exported backups contain the authenticated encrypted envelope only, are capped at 10 MB on import, and must decrypt successfully before replacement.
+- Password rotation uses a new random salt and key; permanent deletion requires an explicit typed phrase.
 
 ## Residual risks
 
@@ -29,3 +31,5 @@
 - Malware or another process controlling the user device may read data while the vault is unlocked.
 - Future target websites can read values after the user confirms filling them, just as they can read manually entered values.
 - Browser extension updates and third-party dependencies are supply-chain risks and require review.
+- A forgotten master password cannot be recovered. This is a deliberate consequence of having no server, recovery key, or backdoor.
+- Deleting the local vault cannot revoke data already filled into websites or remove backup copies stored elsewhere by the user.

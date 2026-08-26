@@ -40,6 +40,13 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - Explicit site mappings run before fill-plan generation and have full confidence, but custom-field sensitivity/default rules still apply.
 - Saving a new rule merges fields from the current scan while preserving rules for other forms on the same hostname. Deleting a custom field atomically removes mappings that reference it.
 
+## Backup and lifecycle
+
+- A `.suifill` backup is a versioned wrapper around the encrypted vault envelope. It contains no plaintext, password, or key.
+- Import is size-bounded, schema-validated, and unlocked with the backup's password before replacement requires a second confirmation.
+- Password rotation derives a new non-extractable key with a new random salt, then re-encrypts the existing vault.
+- Permanent deletion removes the encrypted storage key after the user types an explicit confirmation phrase.
+
 ## Personal-data model
 
 - Identities, contacts, addresses, and custom fields are independent records so the user can maintain multiple versions of each.

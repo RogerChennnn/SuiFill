@@ -37,6 +37,21 @@ export async function createEncryptedVault(password: string): Promise<UnlockedVa
   return { envelope, key, vault };
 }
 
+export async function encryptExistingVault(
+  vault: VaultData,
+  password: string,
+): Promise<UnlockedVault> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await deriveVaultKey(password, salt, PBKDF2_ITERATIONS);
+  const updatedVault = { ...vault, updatedAt: new Date().toISOString() };
+  const envelope = await encryptVault(updatedVault, key, {
+    iterations: PBKDF2_ITERATIONS,
+    salt: bytesToBase64(salt),
+  });
+
+  return { envelope, key, vault: updatedVault };
+}
+
 export async function unlockEncryptedVault(
   password: string,
   envelope: VaultEnvelope,
