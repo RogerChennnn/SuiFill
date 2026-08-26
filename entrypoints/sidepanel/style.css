@@ -838,6 +838,10 @@ h2 {
   overflow-y: auto;
 }
 
+.compact-detected-list {
+  max-height: 190px;
+}
+
 .detected-field {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -878,6 +882,132 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.preview-builder {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 9px;
+  margin-top: 13px;
+  padding: 12px;
+  border-radius: 13px;
+  background: var(--surface-soft);
+}
+
+.preview-button {
+  min-height: 42px;
+  padding: 0 12px;
+  font-size: 10px;
+}
+
+.preview-button:disabled {
+  color: #849188;
+  background: #e0e5e2;
+  cursor: not-allowed;
+}
+
+.fill-preview {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e1e7e3;
+}
+
+.preview-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.preview-heading h3 {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.preview-heading > span {
+  color: var(--green-deep);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.fill-plan-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.fill-plan-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid #dfe6e1;
+  border-radius: 12px;
+  background: #fbfcfb;
+  cursor: pointer;
+}
+
+.fill-plan-item:has(input:checked) {
+  border-color: #aac9b5;
+  background: #f2f9f4;
+}
+
+.fill-plan-item > input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin: 1px 0 0;
+  accent-color: var(--green);
+}
+
+.fill-plan-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.fill-plan-copy strong {
+  overflow: hidden;
+  color: #2d4036;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fill-plan-copy small {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.fill-plan-copy em {
+  width: fit-content;
+  padding: 3px 6px;
+  border-radius: 7px;
+  color: #8b4a19;
+  background: #fff1d8;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.confirm-fill-button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.fill-result {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #cfe3d5;
+  border-radius: 11px;
+  color: #2d553c;
+  background: #eff8f1;
+  font-size: 10px;
+  line-height: 1.5;
 }
 
 .detected-copy strong {

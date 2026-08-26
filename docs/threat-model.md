@@ -17,7 +17,9 @@
 - High-sensitivity custom fields cannot opt into default bulk filling.
 - Presets do not duplicate personal values, and dangling preset references fail schema validation.
 - Page scanning requires an explicit click, skips password controls, never reads current control values, and remains memory-only.
-- No vault data is sent to a page in M4.
+- Fill plans remain memory-only and send only checked value/locator pairs to the scanned page document.
+- The filler skips existing values and has no submit, click, or navigation capability.
+- The target page can read values after they are filled, just as it can read manually typed values.
 
 ## Residual risks
 

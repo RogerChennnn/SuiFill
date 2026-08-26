@@ -14,4 +14,12 @@ The responsible-disclosure contact will be added before public release. Until th
 - Uniform unlock failure for incorrect passwords, damaged ciphertext, and invalid decrypted data.
 - Fifteen-minute in-panel inactivity lock.
 
+## Page data boundary
+
+- Scanning never reads current form-control values.
+- Fill preview values remain in extension-page memory.
+- Only user-checked value/locator instructions reach the scanned page document.
+- Non-empty controls are never overwritten.
+- The filler contains no form submission, page-control click, or navigation call.
+
 The PBKDF2 work factor follows the OWASP Password Storage Cheat Sheet baseline for PBKDF2-HMAC-SHA-256: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html

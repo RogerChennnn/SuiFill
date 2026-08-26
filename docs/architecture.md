@@ -25,6 +25,14 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - The scanner does not access any control's current value. Classification runs back in the extension page and scan results stay in memory only.
 - Standard `autocomplete` tokens have the highest confidence, followed by input type, labels, accessibility labels, field names, and placeholders.
 
+## Review and fill boundary
+
+- A selected preset is resolved to a per-field plan in side-panel memory. The complete vault and preset are never sent to the page.
+- High-confidence ordinary matches can be suggested; low-confidence, default-disabled, and level-three custom values require individual selection.
+- The final injected payload contains only selected value/locator pairs and is bound to the scanned tab, document ID when available, and hostname.
+- The filler refuses to overwrite non-empty controls, refuses values longer than a control's declared maximum, and reports counts without returning page values.
+- The filler dispatches normal input/change events but contains no submit, requestSubmit, button-click, navigation, or purchase action.
+
 ## Personal-data model
 
 - Identities, contacts, addresses, and custom fields are independent records so the user can maintain multiple versions of each.

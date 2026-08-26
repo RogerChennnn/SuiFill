@@ -2,7 +2,7 @@
 
 SuiFill is a local-first Chrome/Edge extension for maintaining multiple identity, contact, and address profiles and safely filling a user-confirmed selection into the current page.
 
-The project has completed **M4: form recognition**. After an explicit click, it can inspect the active page's empty form structure, classify supported fields, and show confidence. It never reads current field values and does not fill or submit yet.
+The project has completed **M5: review and safe fill**. It can scan after an explicit click, combine recognized fields with a selected preset, show a per-field preview, and fill only checked items into the same page document. It does not overwrite existing values or submit forms.
 
 ## Privacy baseline
 
@@ -10,6 +10,8 @@ The project has completed **M4: form recognition**. After an explicit click, it 
 - No telemetry or analytics.
 - No access to browsing history or cookies.
 - No automatic form submission.
+- No automatic overwrite of fields that already contain a value.
+- Only the final user-checked instructions, never the whole vault, reach the page.
 - Level-three custom fields cannot be included in default bulk filling.
 - No real personal data in repository fixtures.
 

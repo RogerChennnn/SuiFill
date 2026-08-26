@@ -52,3 +52,28 @@ export interface ClassifiedField {
   confidence: number;
   evidence: string[];
 }
+
+export interface FillPlanItem {
+  id: string;
+  locator: FieldLocator;
+  targetLabel: string;
+  semantic: SemanticField;
+  confidence: number;
+  value: string;
+  sourceLabel: string;
+  sensitivity: 1 | 2 | 3;
+  selectedByDefault: boolean;
+  requiresExplicitConfirmation: boolean;
+}
+
+export interface FillInstruction {
+  locator: FieldLocator;
+  value: string;
+}
+
+export interface FillExecutionResult {
+  filled: number;
+  skippedOccupied: number;
+  failed: number;
+  pageMismatch: boolean;
+}
