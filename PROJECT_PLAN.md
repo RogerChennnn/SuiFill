@@ -8,7 +8,7 @@ The project is implemented as nine independently verifiable milestones. Only one
 | M1        | Password-derived AES-GCM encrypted local vault, lock/unlock                   | Complete |
 | M2        | Identity, contact, address, and custom-field CRUD                             | Complete |
 | M3        | Reusable scenario presets that reference base data                            | Complete |
-| M4        | DOM scanning, semantic classification, confidence scoring                     | Pending  |
+| M4        | DOM scanning, semantic classification, confidence scoring                     | Complete |
 | M5        | Reviewable fill plan and safe field filling without submit                    | Pending  |
 | M6        | Encrypted per-site user mapping rules                                         | Pending  |
 | M7        | Encrypted backup/restore, deletion, privacy and threat review                 | Pending  |

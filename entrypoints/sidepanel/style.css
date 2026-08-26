@@ -429,6 +429,18 @@ h2 {
   font-weight: 750;
 }
 
+.gesture-badge {
+  display: inline-flex;
+  min-height: 25px;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: #31506b;
+  background: #e8f2fa;
+  font-size: 9px;
+  font-weight: 750;
+}
+
 .category-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -756,6 +768,125 @@ h2 {
 
 .custom-reference-fieldset small {
   color: #934037;
+  font-size: 9px;
+}
+
+.scanner-intro {
+  margin-top: 13px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.scan-button {
+  width: 100%;
+  margin-top: 13px;
+}
+
+.scanner-message {
+  margin-top: 11px;
+}
+
+.scan-results {
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px solid #e8ece9;
+}
+
+.scan-summary {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 7px;
+}
+
+.scan-summary span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  padding: 9px 7px;
+  border-radius: 11px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  text-align: center;
+  font-size: 9px;
+}
+
+.scan-summary strong {
+  overflow: hidden;
+  color: var(--green-deep);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scan-notice {
+  margin-top: 9px;
+  padding: 8px 9px;
+  border-radius: 9px;
+  color: #5c5236;
+  background: #fff8e8;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.detected-field-list {
+  display: grid;
+  gap: 7px;
+  max-height: 330px;
+  margin-top: 10px;
+  padding-right: 2px;
+  overflow-y: auto;
+}
+
+.detected-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-height: 50px;
+  padding: 8px 10px;
+  border: 1px solid #e1e7e3;
+  border-radius: 11px;
+  background: #fbfcfb;
+}
+
+.field-status {
+  display: grid;
+  width: 39px;
+  min-height: 25px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--green-deep);
+  background: var(--green-pale);
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.field-status.unknown {
+  color: #7a5a20;
+  background: #fff1d0;
+}
+
+.detected-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.detected-copy strong,
+.detected-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detected-copy strong {
+  color: #2c3d34;
+  font-size: 11px;
+}
+
+.detected-copy small {
+  color: var(--muted);
   font-size: 9px;
 }
 

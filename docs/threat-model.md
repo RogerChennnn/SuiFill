@@ -16,7 +16,8 @@
 - Fifteen minutes of side-panel inactivity locks the session.
 - High-sensitivity custom fields cannot opt into default bulk filling.
 - Presets do not duplicate personal values, and dangling preset references fail schema validation.
-- No content script exists yet, so no vault data is sent to a page in M3.
+- Page scanning requires an explicit click, skips password controls, never reads current control values, and remains memory-only.
+- No vault data is sent to a page in M4.
 
 ## Residual risks
 
