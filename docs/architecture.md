@@ -9,6 +9,14 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - **Injected page code:** scans the active page and applies a user-confirmed fill plan. It must never receive the complete vault.
 - **Local storage:** stores only versioned encrypted vault envelopes and non-sensitive bootstrap settings.
 
+## Vault cryptography
+
+- PBKDF2-HMAC-SHA-256 derives a non-extractable 256-bit AES key from the master password.
+- New vaults use 600,000 PBKDF2 iterations and a random 16-byte salt.
+- Vault JSON is authenticated and encrypted with AES-GCM using a fresh random 12-byte IV for every save.
+- The password and derived key are never persisted. The unlocked key and plaintext exist only in side-panel memory and are discarded on lock, reload, or panel close.
+- The current inactivity timeout is 15 minutes and resets only on interaction inside the side panel.
+
 ## First release constraints
 
 - No server or user account.

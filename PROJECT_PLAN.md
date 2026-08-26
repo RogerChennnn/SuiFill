@@ -5,7 +5,7 @@ The project is implemented as nine independently verifiable milestones. Only one
 | Milestone | Outcome                                                                       | Status   |
 | --------- | ----------------------------------------------------------------------------- | -------- |
 | M0        | WXT/React/TypeScript foundation, side panel, minimal permissions, tests, docs | Complete |
-| M1        | Password-derived AES-GCM encrypted local vault, lock/unlock                   | Pending  |
+| M1        | Password-derived AES-GCM encrypted local vault, lock/unlock                   | Complete |
 | M2        | Identity, contact, address, and custom-field CRUD                             | Pending  |
 | M3        | Reusable scenario presets that reference base data                            | Pending  |
 | M4        | DOM scanning, semantic classification, confidence scoring                     | Pending  |

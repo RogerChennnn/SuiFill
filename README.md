@@ -2,7 +2,7 @@
 
 SuiFill is a local-first Chrome/Edge extension for maintaining multiple identity, contact, and address profiles and safely filling a user-confirmed selection into the current page.
 
-The project is currently at **M0: engineering foundation**. It does not yet store or fill personal information.
+The project has completed **M1: local encrypted vault**. It can create, lock, and unlock an empty encrypted vault, but it does not yet store or fill personal information.
 
 ## Privacy baseline
 

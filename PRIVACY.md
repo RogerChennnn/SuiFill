@@ -1,5 +1,7 @@
 # Privacy notice draft
 
-SuiFill is being designed as a local-first browser extension. The M0 engineering build does not collect, store, transmit, or fill personal information.
+SuiFill is a local-first browser extension. The M1 build can create an empty encrypted information vault, but it does not yet collect or fill personal information.
 
-Before any personal-data feature is released, this notice will document the exact local storage, encryption, page-access, export, deletion, and limitation behavior implemented by the extension.
+The master password is used locally to derive a non-extractable encryption key. The password and key are not persisted or transmitted. Only the encrypted vault envelope, its random salt, its random initialization vector, algorithm metadata, version, and timestamps are stored in browser extension storage.
+
+SuiFill has no server, account, analytics, advertising, or remote runtime resources. The final notice will expand as personal-data, page-access, export, and deletion features are implemented.
