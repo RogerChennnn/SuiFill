@@ -4,6 +4,7 @@ import type {
   CustomField,
   EntityMetadata,
   IdentityProfile,
+  Preset,
   VaultData,
 } from './schema';
 
@@ -45,6 +46,33 @@ export function createCustomField(
   return withMetadata(normalizeCustomFieldInput(input), options);
 }
 
+export function createPreset(input: EntityInput<Preset>, options?: EntityFactoryOptions): Preset {
+  return withMetadata(normalizePresetInput(input), options);
+}
+
+export function savePreset(vault: VaultData, preset: Preset, now = new Date()): VaultData {
+  const timestamp = now.toISOString();
+  const normalized: Preset = {
+    ...preset,
+    label: preset.label.trim(),
+    updatedAt: timestamp,
+    customFieldIds: [...new Set(preset.customFieldIds.filter(Boolean))],
+  };
+  const presets = vault.presets.some((item) => item.id === preset.id)
+    ? vault.presets.map((item) => (item.id === preset.id ? normalized : item))
+    : [...vault.presets, normalized];
+
+  return { ...vault, presets, updatedAt: timestamp };
+}
+
+export function deletePreset(vault: VaultData, id: string, now = new Date()): VaultData {
+  return {
+    ...vault,
+    presets: vault.presets.filter((preset) => preset.id !== id),
+    updatedAt: now.toISOString(),
+  };
+}
+
 export function saveVaultEntity(
   vault: VaultData,
   collection: EntityCollection,
@@ -72,9 +100,11 @@ export function deleteVaultEntity(
   now = new Date(),
 ): VaultData {
   const existing = vault[collection] as EditableEntity[];
+  const presets = unlinkDeletedEntity(vault.presets, collection, id, now);
   return {
     ...vault,
     [collection]: existing.filter((item) => item.id !== id),
+    presets,
     updatedAt: now.toISOString(),
   } as VaultData;
 }
@@ -115,6 +145,41 @@ function normalizeCustomFieldInput(input: EntityInput<CustomField>): EntityInput
     aliases: normalizeAliases(input.aliases),
     allowDefaultFill: input.sensitivity === 3 ? false : input.allowDefaultFill,
   };
+}
+
+function normalizePresetInput(input: EntityInput<Preset>): EntityInput<Preset> {
+  return {
+    ...input,
+    customFieldIds: [...new Set(input.customFieldIds.filter(Boolean))],
+  };
+}
+
+function unlinkDeletedEntity(
+  presets: Preset[],
+  collection: EntityCollection,
+  id: string,
+  now: Date,
+): Preset[] {
+  const timestamp = now.toISOString();
+  return presets.map((preset) => {
+    if (collection === 'identities' && preset.identityId === id) {
+      return { ...preset, identityId: null, updatedAt: timestamp };
+    }
+    if (collection === 'contacts' && preset.contactId === id) {
+      return { ...preset, contactId: null, updatedAt: timestamp };
+    }
+    if (collection === 'addresses' && preset.addressId === id) {
+      return { ...preset, addressId: null, updatedAt: timestamp };
+    }
+    if (collection === 'customFields' && preset.customFieldIds.includes(id)) {
+      return {
+        ...preset,
+        customFieldIds: preset.customFieldIds.filter((customFieldId) => customFieldId !== id),
+        updatedAt: timestamp,
+      };
+    }
+    return preset;
+  });
 }
 
 function normalizeAliases(aliases: string[]): string[] {

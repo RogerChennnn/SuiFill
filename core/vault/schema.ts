@@ -63,6 +63,14 @@ export interface CustomField extends EntityMetadata {
   allowDefaultFill: boolean;
 }
 
+export interface Preset extends EntityMetadata {
+  description: string;
+  identityId: string | null;
+  contactId: string | null;
+  addressId: string | null;
+  customFieldIds: string[];
+}
+
 export interface VaultData {
   schemaVersion: typeof VAULT_SCHEMA_VERSION;
   createdAt: string;
@@ -71,7 +79,7 @@ export interface VaultData {
   contacts: ContactProfile[];
   addresses: AddressProfile[];
   customFields: CustomField[];
-  presets: Array<Record<string, never>>;
+  presets: Preset[];
   siteRules: Array<Record<string, never>>;
 }
 
@@ -119,8 +127,9 @@ export function isVaultData(value: unknown): value is VaultData {
     isArrayOf(value.contacts, isContactProfile) &&
     isArrayOf(value.addresses, isAddressProfile) &&
     isArrayOf(value.customFields, isCustomField) &&
-    Array.isArray(value.presets) &&
-    Array.isArray(value.siteRules)
+    isArrayOf(value.presets, isPreset) &&
+    Array.isArray(value.siteRules) &&
+    hasValidPresetReferences(value)
   );
 }
 
@@ -194,6 +203,44 @@ function isCustomField(value: unknown): value is CustomField {
     typeof value.allowDefaultFill === 'boolean' &&
     (value.sensitivity !== 3 || value.allowDefaultFill === false)
   );
+}
+
+function isPreset(value: unknown): value is Preset {
+  if (!hasEntityMetadata(value)) return false;
+
+  return (
+    typeof value.description === 'string' &&
+    isNullableString(value.identityId) &&
+    isNullableString(value.contactId) &&
+    isNullableString(value.addressId) &&
+    Array.isArray(value.customFieldIds) &&
+    value.customFieldIds.every((id) => typeof id === 'string')
+  );
+}
+
+function hasValidPresetReferences(value: Record<string, unknown>): boolean {
+  const identities = value.identities as IdentityProfile[];
+  const contacts = value.contacts as ContactProfile[];
+  const addresses = value.addresses as AddressProfile[];
+  const customFields = value.customFields as CustomField[];
+  const presets = value.presets as Preset[];
+
+  const identityIds = new Set(identities.map((item) => item.id));
+  const contactIds = new Set(contacts.map((item) => item.id));
+  const addressIds = new Set(addresses.map((item) => item.id));
+  const customFieldIds = new Set(customFields.map((item) => item.id));
+
+  return presets.every(
+    (preset) =>
+      (preset.identityId === null || identityIds.has(preset.identityId)) &&
+      (preset.contactId === null || contactIds.has(preset.contactId)) &&
+      (preset.addressId === null || addressIds.has(preset.addressId)) &&
+      preset.customFieldIds.every((id) => customFieldIds.has(id)),
+  );
+}
+
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === 'string';
 }
 
 function hasEntityMetadata(value: unknown): value is EntityMetadata & Record<string, unknown> {

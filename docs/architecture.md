@@ -23,6 +23,7 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - Each record has a stable random ID plus creation and update timestamps.
 - Every data mutation produces a new vault value and immediately reseals the complete vault with a fresh AES-GCM IV before storage.
 - Custom fields have a sensitivity level. Level-three fields are normalized to disallow default bulk filling and are rejected by validation if this invariant is violated.
+- Scenario presets reference the stable IDs of base records rather than copying their values. Deleting a base record atomically clears its references, and vault validation rejects dangling references.
 
 ## First release constraints
 

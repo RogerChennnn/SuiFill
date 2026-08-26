@@ -10,6 +10,7 @@ import {
 import { getStoredVault, StoredVaultError, storeVault } from '../../core/vault/storage';
 import type { VaultData, VaultEnvelope } from '../../core/vault/schema';
 import { VaultManager } from './VaultManager';
+import { PresetManager } from './PresetManager';
 
 const AUTO_LOCK_MS = 15 * 60 * 1000;
 const MINIMUM_PASSWORD_LENGTH = 12;
@@ -86,7 +87,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
-  const completedMilestones = 3;
+  const completedMilestones = 4;
   const progress = getProjectProgress(completedMilestones);
 
   useEffect(() => {
@@ -337,7 +338,10 @@ function App() {
       {renderVaultCard()}
 
       {screen === 'unlocked' && session && (
-        <VaultManager vault={session.vault} onSave={persistVault} />
+        <>
+          <VaultManager vault={session.vault} onSave={persistVault} />
+          <PresetManager vault={session.vault} onSave={persistVault} />
+        </>
       )}
 
       <section className="privacy-card" aria-labelledby="privacy-title">
@@ -368,7 +372,7 @@ function App() {
         <div className="progress-heading">
           <div>
             <p className="eyebrow">BUILD PROGRESS</p>
-            <h2 id="progress-title">第 3 步，共 {MILESTONES.length} 步</h2>
+            <h2 id="progress-title">第 4 步，共 {MILESTONES.length} 步</h2>
           </div>
           <strong>{progress}%</strong>
         </div>
@@ -387,8 +391,8 @@ function App() {
             <Icon name="check" />
           </span>
           <div>
-            <strong>{MILESTONES[2]}</strong>
-            <p>四类资料的新增、编辑、删除与加密保存</p>
+            <strong>{MILESTONES[3]}</strong>
+            <p>按使用场景组合基础资料，源数据更新后自动同步</p>
           </div>
         </div>
       </section>

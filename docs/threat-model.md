@@ -15,7 +15,8 @@
 - Closing or reloading the side panel drops the unlocked session.
 - Fifteen minutes of side-panel inactivity locks the session.
 - High-sensitivity custom fields cannot opt into default bulk filling.
-- No content script exists yet, so no vault data is sent to a page in M2.
+- Presets do not duplicate personal values, and dangling preset references fail schema validation.
+- No content script exists yet, so no vault data is sent to a page in M3.
 
 ## Residual risks
 
