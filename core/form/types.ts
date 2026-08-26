@@ -51,6 +51,7 @@ export interface ClassifiedField {
   semantic: SemanticField;
   confidence: number;
   evidence: string[];
+  customFieldId?: string;
 }
 
 export interface FillPlanItem {

@@ -5,6 +5,7 @@ import type {
   EntityMetadata,
   IdentityProfile,
   Preset,
+  SiteRule,
   VaultData,
 } from './schema';
 
@@ -101,12 +102,34 @@ export function deleteVaultEntity(
 ): VaultData {
   const existing = vault[collection] as EditableEntity[];
   const presets = unlinkDeletedEntity(vault.presets, collection, id, now);
+  const siteRules = unlinkDeletedCustomField(vault.siteRules, collection, id, now);
   return {
     ...vault,
     [collection]: existing.filter((item) => item.id !== id),
     presets,
+    siteRules,
     updatedAt: now.toISOString(),
   } as VaultData;
+}
+
+function unlinkDeletedCustomField(
+  rules: SiteRule[],
+  collection: EntityCollection,
+  id: string,
+  now: Date,
+): SiteRule[] {
+  if (collection !== 'customFields') return rules;
+  const timestamp = now.toISOString();
+  return rules
+    .map((rule) => {
+      const mappings = rule.mappings.filter(
+        (mapping) => mapping.source.kind !== 'custom' || mapping.source.customFieldId !== id,
+      );
+      return mappings.length === rule.mappings.length
+        ? rule
+        : { ...rule, mappings, updatedAt: timestamp };
+    })
+    .filter((rule) => rule.mappings.length > 0);
 }
 
 function withMetadata<T extends EntityMetadata>(

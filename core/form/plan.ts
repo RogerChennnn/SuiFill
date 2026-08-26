@@ -19,8 +19,18 @@ export function buildFillPlan(
     .filter((field): field is CustomField => Boolean(field));
 
   return fields.flatMap((field) => {
-    const standard = standardValues.get(field.semantic);
-    const custom = standard ? null : resolveCustomValue(field.signal, customFields);
+    const mappedCustom = field.customFieldId
+      ? customFields.find((customField) => customField.id === field.customFieldId)
+      : undefined;
+    const directCustom = mappedCustom
+      ? {
+          confidence: 1,
+          resolved: toCustomResolvedValue(mappedCustom),
+        }
+      : null;
+    const standard = directCustom ? undefined : standardValues.get(field.semantic);
+    const custom =
+      directCustom ?? (standard ? null : resolveCustomValue(field.signal, customFields));
     const resolved = standard ?? custom?.resolved;
     if (!resolved?.value) return [];
 
@@ -117,18 +127,22 @@ function resolveCustomValue(
       if (aliases.some((alias) => matchesAlias(source.text, alias))) {
         return {
           confidence: source.confidence,
-          resolved: {
-            value: field.value,
-            sourceLabel: field.label,
-            sensitivity: field.sensitivity,
-            allowDefaultFill: field.allowDefaultFill,
-          },
+          resolved: toCustomResolvedValue(field),
         };
       }
     }
   }
 
   return null;
+}
+
+function toCustomResolvedValue(field: CustomField): ResolvedValue {
+  return {
+    value: field.value,
+    sourceLabel: field.label,
+    sensitivity: field.sensitivity,
+    allowDefaultFill: field.allowDefaultFill,
+  };
 }
 
 function matchesAlias(value: string, alias: string): boolean {

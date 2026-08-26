@@ -88,7 +88,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
-  const completedMilestones = 6;
+  const completedMilestones = 7;
   const progress = getProjectProgress(completedMilestones);
 
   useEffect(() => {
@@ -342,7 +342,7 @@ function App() {
         <>
           <VaultManager vault={session.vault} onSave={persistVault} />
           <PresetManager vault={session.vault} onSave={persistVault} />
-          <PageScanner vault={session.vault} />
+          <PageScanner vault={session.vault} onSave={persistVault} />
         </>
       )}
 
@@ -374,7 +374,7 @@ function App() {
         <div className="progress-heading">
           <div>
             <p className="eyebrow">BUILD PROGRESS</p>
-            <h2 id="progress-title">第 6 步，共 {MILESTONES.length} 步</h2>
+            <h2 id="progress-title">第 7 步，共 {MILESTONES.length} 步</h2>
           </div>
           <strong>{progress}%</strong>
         </div>
@@ -393,8 +393,8 @@ function App() {
             <Icon name="check" />
           </span>
           <div>
-            <strong>{MILESTONES[5]}</strong>
-            <p>逐字段预览确认，只填写选中项且不覆盖、不提交</p>
+            <strong>{MILESTONES[6]}</strong>
+            <p>按域名加密保存人工字段映射，并优先于自动识别</p>
           </div>
         </div>
       </section>

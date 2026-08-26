@@ -20,6 +20,8 @@
 - Fill plans remain memory-only and send only checked value/locator pairs to the scanned page document.
 - The filler skips existing values and has no submit, click, or navigation capability.
 - The target page can read values after they are filled, just as it can read manually typed values.
+- Per-site hostnames and field signatures are encrypted at rest; exact-hostname matching prevents a rule from applying to sibling or unrelated domains.
+- Site-rule custom references are validated and automatically removed if their source field is deleted.
 
 ## Residual risks
 

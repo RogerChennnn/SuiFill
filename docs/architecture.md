@@ -33,6 +33,13 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - The filler refuses to overwrite non-empty controls, refuses values longer than a control's declared maximum, and reports counts without returning page values.
 - The filler dispatches normal input/change events but contains no submit, requestSubmit, button-click, navigation, or purchase action.
 
+## Per-site rules
+
+- A user can override classification for a scanned field with a standard semantic type or a custom-field reference.
+- Rules are keyed by normalized hostname and use bounded signatures composed of tag, ID, name, and visible field label. They are stored only inside the encrypted vault.
+- Explicit site mappings run before fill-plan generation and have full confidence, but custom-field sensitivity/default rules still apply.
+- Saving a new rule merges fields from the current scan while preserving rules for other forms on the same hostname. Deleting a custom field atomically removes mappings that reference it.
+
 ## Personal-data model
 
 - Identities, contacts, addresses, and custom fields are independent records so the user can maintain multiple versions of each.

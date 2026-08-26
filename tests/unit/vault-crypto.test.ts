@@ -6,6 +6,7 @@ import {
   VaultUnlockError,
 } from '../../core/vault/crypto';
 import { createCustomField, saveVaultEntity } from '../../core/vault/entities';
+import { createSiteMapping, createSiteRule, saveSiteRule } from '../../core/form/site-rules';
 
 const TEST_PASSWORD = 'correct horse battery staple';
 
@@ -19,16 +20,36 @@ describe('vault cryptography', () => {
       sensitivity: 2,
       allowDefaultFill: false,
     });
-    const populated = saveVaultEntity(created.vault, 'customFields', customField);
+    let populated = saveVaultEntity(created.vault, 'customFields', customField);
+    populated = saveSiteRule(
+      populated,
+      createSiteRule('private.example.test', [
+        createSiteMapping(
+          {
+            locator: { ordinal: 0, tagName: 'input', id: 'example-id', name: '' },
+            inputType: 'text',
+            autocomplete: '',
+            placeholder: '',
+            ariaLabel: '',
+            labels: ['Example ID'],
+            required: false,
+            maxLength: null,
+          },
+          { kind: 'custom', customFieldId: customField.id },
+        ),
+      ]),
+    );
     const envelope = await resealVault(populated, created.key, created.envelope);
     const serialized = JSON.stringify(envelope);
 
     expect(serialized).not.toContain(TEST_PASSWORD);
     expect(serialized).not.toContain(customField.value);
+    expect(serialized).not.toContain('private.example.test');
     expect(created.key.extractable).toBe(false);
 
     const unlocked = await unlockEncryptedVault(TEST_PASSWORD, envelope);
     expect(unlocked.vault.customFields[0]!.value).toBe(customField.value);
+    expect(unlocked.vault.siteRules[0]!.hostname).toBe('private.example.test');
   });
 
   it('rejects an incorrect password', async () => {

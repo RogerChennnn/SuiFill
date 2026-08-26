@@ -1,3 +1,5 @@
+import type { SemanticField } from '../form/types';
+
 export const VAULT_FORMAT = 'suifill-vault';
 export const VAULT_ENVELOPE_VERSION = 1;
 export const VAULT_SCHEMA_VERSION = 1;
@@ -71,6 +73,27 @@ export interface Preset extends EntityMetadata {
   customFieldIds: string[];
 }
 
+export interface SiteFieldSignature {
+  tagName: 'input' | 'select' | 'textarea';
+  id: string;
+  name: string;
+  label: string;
+}
+
+export type SiteRuleSource =
+  | { kind: 'semantic'; semantic: Exclude<SemanticField, 'unknown'> }
+  | { kind: 'custom'; customFieldId: string };
+
+export interface SiteFieldMapping {
+  signature: SiteFieldSignature;
+  source: SiteRuleSource;
+}
+
+export interface SiteRule extends EntityMetadata {
+  hostname: string;
+  mappings: SiteFieldMapping[];
+}
+
 export interface VaultData {
   schemaVersion: typeof VAULT_SCHEMA_VERSION;
   createdAt: string;
@@ -80,7 +103,7 @@ export interface VaultData {
   addresses: AddressProfile[];
   customFields: CustomField[];
   presets: Preset[];
-  siteRules: Array<Record<string, never>>;
+  siteRules: SiteRule[];
 }
 
 export interface VaultEnvelope {
@@ -128,8 +151,9 @@ export function isVaultData(value: unknown): value is VaultData {
     isArrayOf(value.addresses, isAddressProfile) &&
     isArrayOf(value.customFields, isCustomField) &&
     isArrayOf(value.presets, isPreset) &&
-    Array.isArray(value.siteRules) &&
-    hasValidPresetReferences(value)
+    isArrayOf(value.siteRules, isSiteRule) &&
+    hasValidPresetReferences(value) &&
+    hasValidSiteRuleReferences(value)
   );
 }
 
@@ -218,6 +242,36 @@ function isPreset(value: unknown): value is Preset {
   );
 }
 
+function isSiteRule(value: unknown): value is SiteRule {
+  if (!hasEntityMetadata(value)) return false;
+  return (
+    typeof value.hostname === 'string' &&
+    isValidHostname(value.hostname) &&
+    Array.isArray(value.mappings) &&
+    value.mappings.every(isSiteFieldMapping)
+  );
+}
+
+function isSiteFieldMapping(value: unknown): value is SiteFieldMapping {
+  if (!isRecord(value) || !isRecord(value.signature) || !isRecord(value.source)) return false;
+  const signature = value.signature;
+  const source = value.source;
+  const validSignature =
+    (signature.tagName === 'input' ||
+      signature.tagName === 'select' ||
+      signature.tagName === 'textarea') &&
+    typeof signature.id === 'string' &&
+    typeof signature.name === 'string' &&
+    typeof signature.label === 'string' &&
+    Boolean(signature.id || signature.name || signature.label);
+  if (!validSignature) return false;
+
+  if (source.kind === 'semantic') {
+    return typeof source.semantic === 'string' && isSiteSemantic(source.semantic);
+  }
+  return source.kind === 'custom' && typeof source.customFieldId === 'string';
+}
+
 function hasValidPresetReferences(value: Record<string, unknown>): boolean {
   const identities = value.identities as IdentityProfile[];
   const contacts = value.contacts as ContactProfile[];
@@ -237,6 +291,55 @@ function hasValidPresetReferences(value: Record<string, unknown>): boolean {
       (preset.addressId === null || addressIds.has(preset.addressId)) &&
       preset.customFieldIds.every((id) => customFieldIds.has(id)),
   );
+}
+
+function hasValidSiteRuleReferences(value: Record<string, unknown>): boolean {
+  const customFieldIds = new Set((value.customFields as CustomField[]).map((item) => item.id));
+  const siteRules = value.siteRules as SiteRule[];
+  const hostnames = siteRules.map((rule) => rule.hostname);
+  if (new Set(hostnames).size !== hostnames.length) return false;
+
+  return siteRules.every((rule) =>
+    rule.mappings.every(
+      (mapping) =>
+        mapping.source.kind !== 'custom' || customFieldIds.has(mapping.source.customFieldId),
+    ),
+  );
+}
+
+function isValidHostname(value: string): boolean {
+  return (
+    value.length > 0 &&
+    value.length <= 253 &&
+    value === value.toLowerCase() &&
+    !value.includes('/') &&
+    !value.includes(':') &&
+    !/\s/u.test(value)
+  );
+}
+
+function isSiteSemantic(value: string): value is Exclude<SemanticField, 'unknown'> {
+  return [
+    'fullName',
+    'firstName',
+    'middleName',
+    'lastName',
+    'email',
+    'phone',
+    'phoneCountryCode',
+    'organization',
+    'addressLine1',
+    'addressLine2',
+    'city',
+    'district',
+    'province',
+    'postalCode',
+    'country',
+    'birthDate',
+    'gender',
+    'website',
+    'username',
+  ].includes(value);
 }
 
 function isNullableString(value: unknown): value is string | null {

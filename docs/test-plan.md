@@ -16,3 +16,5 @@ M3 adds unit coverage for reference-only presets, duplicate-reference normalizat
 M4 adds table-driven unit coverage for standard autocomplete tokens, input types, Chinese and English labels, accessibility labels, field names, placeholders, ambiguous names, and unknown fields. Production checks must also confirm there are still no host permissions.
 
 M5 adds unit coverage for preset-to-field resolution, address/contact precedence, custom alias matching, empty-source exclusion, low-confidence defaults, and level-three explicit confirmation. Production checks also reject submit, requestSubmit, and click calls in the injected filler.
+
+M6 adds unit coverage for hostname isolation, semantic overrides, direct custom-field mapping, preset membership, dangling-reference rejection, and automatic cleanup when a custom field is deleted.
