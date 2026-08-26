@@ -95,7 +95,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
-  const completedMilestones = 8;
+  const completedMilestones = 9;
   const progress = getProjectProgress(completedMilestones);
 
   useEffect(() => {
@@ -412,7 +412,7 @@ function App() {
         <div className="progress-heading">
           <div>
             <p className="eyebrow">BUILD PROGRESS</p>
-            <h2 id="progress-title">第 8 步，共 {MILESTONES.length} 步</h2>
+            <h2 id="progress-title">第 9 步，共 {MILESTONES.length} 步</h2>
           </div>
           <strong>{progress}%</strong>
         </div>
@@ -431,8 +431,8 @@ function App() {
             <Icon name="check" />
           </span>
           <div>
-            <strong>{MILESTONES[7]}</strong>
-            <p>密文备份恢复、主密码轮换、永久删除与隐私复核</p>
+            <strong>{MILESTONES[8]}</strong>
+            <p>兼容性、浏览器演练、无障碍检查与发布打包</p>
           </div>
         </div>
       </section>

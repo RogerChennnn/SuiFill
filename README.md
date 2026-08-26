@@ -2,7 +2,7 @@
 
 SuiFill is a local-first Chrome/Edge extension for maintaining multiple identity, contact, and address profiles and safely filling a user-confirmed selection into the current page.
 
-The project has completed **M7: security and backup**. It now supports encrypted export, password-verified restore, master-password rotation, permanent local deletion, and a release-oriented privacy and threat review. One release-candidate milestone remains.
+The project has completed **M8: technical release candidate**. All nine implementation milestones are complete, including isolated browser smoke testing and production packaging. Public publication remains intentionally gated on the project owner's license and contact choices.
 
 ## Privacy baseline
 
@@ -34,6 +34,22 @@ pnpm check
 
 The production Chrome bundle is generated in `.output/chrome-mv3/`.
 
+## Install the local release candidate
+
+1. Run `pnpm install` and `pnpm build`, or unzip the generated Chrome release artifact.
+2. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
+3. Enable **Developer mode**.
+4. Choose **Load unpacked** and select `.output/chrome-mv3/` (or the unzipped artifact folder).
+5. Pin SuiFill, open it from the toolbar, and create a master password.
+
+Use only fictional information while evaluating a release candidate. Chrome/Edge will show that a developer-mode extension is unpacked; this is expected for a GitHub-distributed test build.
+
+## Release artifact
+
+Run `pnpm zip` to generate the Chrome/Edge Manifest V3 zip in `.output/`. The zip is intended for release packaging or store submission; users loading directly from GitHub should unzip it and load the contained extension folder.
+
+See [`docs/release-checklist.md`](docs/release-checklist.md) for completed technical gates and the human decisions required before public distribution.
+
 ## Milestones
 
 1. Engineering foundation
@@ -46,4 +62,4 @@ The production Chrome bundle is generated in `.output/chrome-mv3/`.
 8. Backup, recovery, and security review
 9. Release candidate
 
-The license will be selected before the first public release.
+No software license has been granted yet. The project owner must deliberately select one before the first public release.

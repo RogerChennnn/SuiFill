@@ -20,3 +20,5 @@ M5 adds unit coverage for preset-to-field resolution, address/contact precedence
 M6 adds unit coverage for hostname isolation, semantic overrides, direct custom-field mapping, preset membership, dangling-reference rejection, and automatic cleanup when a custom field is deleted.
 
 M7 adds unit coverage for encrypted backup serialization/restore, malformed backup rejection, password rotation, old-password rejection, new random salt, and permanent local storage deletion.
+
+M8 adds an isolated browser smoke test at a side-panel viewport plus release-time static gates for permissions, network calls, logs, scanner value access, and filler submission/click calls. See `release-checklist.md`.
