@@ -2,12 +2,14 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { MILESTONES, PROJECT_NAME, getProjectProgress } from '../../core/project';
 import {
   createEncryptedVault,
+  resealVault,
   unlockEncryptedVault,
   VaultUnlockError,
   type UnlockedVault,
 } from '../../core/vault/crypto';
 import { getStoredVault, StoredVaultError, storeVault } from '../../core/vault/storage';
-import type { VaultEnvelope } from '../../core/vault/schema';
+import type { VaultData, VaultEnvelope } from '../../core/vault/schema';
+import { VaultManager } from './VaultManager';
 
 const AUTO_LOCK_MS = 15 * 60 * 1000;
 const MINIMUM_PASSWORD_LENGTH = 12;
@@ -84,7 +86,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
-  const completedMilestones = 2;
+  const completedMilestones = 3;
   const progress = getProjectProgress(completedMilestones);
 
   useEffect(() => {
@@ -193,6 +195,16 @@ function App() {
     setShowPassword(false);
   }
 
+  async function persistVault(nextVault: VaultData) {
+    if (!session) throw new Error('Vault is locked.');
+
+    const nextEnvelope = await resealVault(nextVault, session.key, session.envelope);
+    await storeVault(nextEnvelope);
+    const persistedVault = { ...nextVault, updatedAt: nextEnvelope.updatedAt };
+    setEnvelope(nextEnvelope);
+    setSession({ ...session, envelope: nextEnvelope, vault: persistedVault });
+  }
+
   function renderVaultCard() {
     if (screen === 'loading') {
       return (
@@ -230,17 +242,20 @@ function App() {
           <div className="hero-copy">
             <span className="status-pill success-pill">已安全解锁</span>
             <h2 id="vault-title">本地加密信息库已就绪</h2>
-            <p>当前信息库中还没有个人资料。下一阶段将加入身份、电话和地址管理。</p>
+            <p>你可以录入多套资料。每次新增、修改或删除后，信息库都会重新加密保存。</p>
           </div>
           <div className="vault-stats" aria-label="当前信息库状态">
             <span>
-              <strong>0</strong> 身份
+              <strong>{session.vault.identities.length}</strong> 身份
             </span>
             <span>
-              <strong>0</strong> 地址
+              <strong>{session.vault.contacts.length}</strong> 联系
             </span>
             <span>
-              <strong>15 分钟</strong> 自动锁定
+              <strong>{session.vault.addresses.length}</strong> 地址
+            </span>
+            <span>
+              <strong>{session.vault.customFields.length}</strong> 自定义
             </span>
           </div>
           <button type="button" className="secondary-button" onClick={lockVault}>
@@ -321,6 +336,10 @@ function App() {
 
       {renderVaultCard()}
 
+      {screen === 'unlocked' && session && (
+        <VaultManager vault={session.vault} onSave={persistVault} />
+      )}
+
       <section className="privacy-card" aria-labelledby="privacy-title">
         <div className="section-heading">
           <Icon name="device" />
@@ -349,7 +368,7 @@ function App() {
         <div className="progress-heading">
           <div>
             <p className="eyebrow">BUILD PROGRESS</p>
-            <h2 id="progress-title">第 2 步，共 {MILESTONES.length} 步</h2>
+            <h2 id="progress-title">第 3 步，共 {MILESTONES.length} 步</h2>
           </div>
           <strong>{progress}%</strong>
         </div>
@@ -368,8 +387,8 @@ function App() {
             <Icon name="check" />
           </span>
           <div>
-            <strong>{MILESTONES[1]}</strong>
-            <p>创建、解锁、错误拒绝、手动和自动锁定</p>
+            <strong>{MILESTONES[2]}</strong>
+            <p>四类资料的新增、编辑、删除与加密保存</p>
           </div>
         </div>
       </section>

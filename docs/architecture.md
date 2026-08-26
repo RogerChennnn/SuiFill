@@ -17,6 +17,13 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - The password and derived key are never persisted. The unlocked key and plaintext exist only in side-panel memory and are discarded on lock, reload, or panel close.
 - The current inactivity timeout is 15 minutes and resets only on interaction inside the side panel.
 
+## Personal-data model
+
+- Identities, contacts, addresses, and custom fields are independent records so the user can maintain multiple versions of each.
+- Each record has a stable random ID plus creation and update timestamps.
+- Every data mutation produces a new vault value and immediately reseals the complete vault with a fresh AES-GCM IV before storage.
+- Custom fields have a sensitivity level. Level-three fields are normalized to disallow default bulk filling and are rejected by validation if this invariant is violated.
+
 ## First release constraints
 
 - No server or user account.

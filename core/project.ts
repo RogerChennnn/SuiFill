@@ -12,7 +12,7 @@ export const MILESTONES = [
   '发布候选版',
 ] as const;
 
-export const CURRENT_MILESTONE_INDEX = 1;
+export const CURRENT_MILESTONE_INDEX = 2;
 
 export function getProjectProgress(completedMilestones: number): number {
   const safeCompleted = Math.min(Math.max(completedMilestones, 0), MILESTONES.length);

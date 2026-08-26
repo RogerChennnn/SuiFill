@@ -8,3 +8,5 @@ Each milestone must add tests at the lowest practical level.
 - Security checks: no plaintext persistence, no unrequested network calls, no permission expansion, and no automatic submit.
 
 The current standard fixture intentionally contains only fictional empty form fields.
+
+M2 adds unit coverage for typed record validation, immutable add/edit/delete operations, alias normalization, forced exclusion of high-sensitivity fields from default filling, and encrypted round-tripping of a populated vault.

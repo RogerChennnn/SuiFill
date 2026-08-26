@@ -14,7 +14,8 @@
 - Wrong passwords and modified ciphertext fail with the same user-facing class of error.
 - Closing or reloading the side panel drops the unlocked session.
 - Fifteen minutes of side-panel inactivity locks the session.
-- No content script exists yet, so no vault data is sent to a page in M1.
+- High-sensitivity custom fields cannot opt into default bulk filling.
+- No content script exists yet, so no vault data is sent to a page in M2.
 
 ## Residual risks
 
