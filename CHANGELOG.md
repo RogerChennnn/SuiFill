@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0] - 2026-09-01
+
+- Refine the side-panel visual system with porcelain off-white surfaces, cool mineral neutrals, and a quieter evergreen action color while preserving every workflow and layout.
+- Remove the framed logo treatment so the transparent puzzle mark sits directly in the toolbar and adopts the same restrained product accent.
+- Tune typography, controls, scrollbars, focus rings, shadows, and inset surfaces for lower glare and more precise hierarchy.
+- Add understated alternating puzzle tabs between stacked top-level cards as a subtle continuation of the SuiFill identity.
+
 ## [0.2.9] - 2026-09-01
 
 - Recognize spelled English address labels such as `Address Line One` and `Address Line Two` with the same behavior as numeric and Chinese variants.
