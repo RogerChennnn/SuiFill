@@ -81,6 +81,7 @@ export function applySiteRule(
   return fields.map((field) => {
     const mapping = findSiteMapping(rule, field.signal);
     if (!mapping) return field;
+    if (!isCompositeMappingCompatible(field.signal, mapping.source)) return field;
 
     if (mapping.source.kind === 'custom') {
       return {
@@ -99,6 +100,14 @@ export function applySiteRule(
       evidence: ['使用本网站的加密自定义规则'],
     };
   });
+}
+
+function isCompositeMappingCompatible(signal: RawFieldSignal, source: SiteRuleSource): boolean {
+  if (!signal.visualGroupRole) return true;
+  if (source.kind !== 'semantic') return false;
+  return signal.visualGroupRole === 'main'
+    ? source.semantic === 'phone'
+    : source.semantic === 'phoneCountryCode';
 }
 
 export function getSiteRule(workspace: WorkspaceData, hostname: string): SiteRule | undefined {

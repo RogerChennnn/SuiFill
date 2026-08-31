@@ -23,6 +23,7 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - A self-contained injected function collects bounded structural signals from visible, editable form controls, including short nearby label text used by component-library layouts. If semantic DOM relationships are missing, a bounded position-based fallback associates the closest short visible text above or beside a control and treats an adjacent country-code selector plus phone input as one visual group.
 - Webpage-code labels and position-derived visual labels remain separate scan signals. The classifier scores either source independently and raises confidence when both agree on the same semantic field.
 - Composite rows are detected from a bounded ancestor or adjacent controls with matching vertical geometry and asymmetric widths. The prefix and main input receive separate transient roles, including when the prefix is a custom non-form component.
+- A rendered `+NN` fragment can recover the left edge of a phone row when hidden framework inputs or validation text prevent ordinary wrapper/adjacency detection. Non-select prefixes are not included in fill plans; the main role is constrained to phone even if a stale site rule says otherwise.
 - Position matching uses only DOM text fragments and element rectangles. It does not capture screenshots, perform OCR, or read control values.
 - Password, hidden, file, checkbox, radio, button, read-only, disabled, and invisible fields are skipped.
 - The scanner does not access any control's current value. Classification runs back in the extension page and scan results stay in memory only.
@@ -35,6 +36,7 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - The final injected payload contains only selected value/locator pairs and is bound to the scanned tab, document ID when available, and hostname.
 - The filler refuses to overwrite non-empty controls, refuses values longer than a control's declared maximum, and reports counts without returning page values.
 - The filler dispatches normal input/change events but contains no submit, requestSubmit, button-click, navigation, or purchase action.
+- Controls are queried again immediately before each instruction because a framework may replace later input nodes after an earlier input/change event.
 
 ## Per-site rules
 

@@ -12,7 +12,6 @@ export function applyFillInstructions(
     return { filled: 0, skippedOccupied: 0, failed: 0, pageMismatch: true };
   }
 
-  const controls = Array.from(document.querySelectorAll('input, select, textarea'));
   let filled = 0;
   let skippedOccupied = 0;
   let failed = 0;
@@ -26,12 +25,15 @@ export function applyFillInstructions(
   };
 
   const findControl = (instruction: FillInstruction): Element | null => {
+    // Framework-controlled forms may replace input nodes after every input/change event.
+    // Re-query for each instruction so later fields never target a detached stale node.
+    const controls = Array.from(document.querySelectorAll('input, select, textarea'));
     const direct = controls[instruction.locator.ordinal];
-    if (direct && matchesLocator(direct, instruction)) return direct;
+    if (direct?.isConnected && matchesLocator(direct, instruction)) return direct;
 
     if (instruction.locator.id) {
       const byId = document.getElementById(instruction.locator.id);
-      if (byId && matchesLocator(byId, instruction)) return byId;
+      if (byId?.isConnected && matchesLocator(byId, instruction)) return byId;
     }
 
     if (instruction.locator.name) {

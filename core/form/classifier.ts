@@ -367,7 +367,21 @@ export function classifyField(signal: RawFieldSignal): ClassifiedField {
 }
 
 export function classifyFields(signals: RawFieldSignal[]): ClassifiedField[] {
-  const classified = signals.map(classifyField);
+  const classified = signals.map(classifyField).map((field) => {
+    if (
+      (field.signal.visualGroupRole === 'prefix' || field.signal.visualGroupRole === 'main') &&
+      hasVisualPhoneLabel(field.signal)
+    ) {
+      return {
+        ...field,
+        semantic: 'phone' as const,
+        confidence: Math.max(field.confidence, 0.88),
+        evidence: [...new Set([...field.evidence, '组合控件视觉标签为电话'])],
+      };
+    }
+    return field;
+  });
+
   return classified.map((field, index) => {
     const next = classified[index + 1];
     if (
@@ -389,6 +403,13 @@ export function classifyFields(signals: RawFieldSignal[]): ClassifiedField[] {
     }
     return field;
   });
+}
+
+function hasVisualPhoneLabel(signal: RawFieldSignal): boolean {
+  const phoneRule = RULES.find((rule) => rule.semantic === 'phone');
+  return Boolean(
+    phoneRule && getAliasMatchQuality((signal.visualLabels ?? []).join(' '), phoneRule.aliases) > 0,
+  );
 }
 
 function haveSharedLabel(left: string[], right: string[]): boolean {

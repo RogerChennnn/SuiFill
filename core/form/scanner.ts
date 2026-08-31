@@ -10,10 +10,15 @@ export function collectPageFieldSignals(): PageScanResult {
   const MAX_VISUAL_TEXT_CANDIDATES = 1500;
   const candidates = Array.from(document.querySelectorAll('input, select, textarea'));
   const fields: RawFieldSignal[] = [];
+  const scannedControls: Array<{
+    element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    signal: RawFieldSignal;
+  }> = [];
   let skippedSensitive = 0;
 
   const cleanText = (value: string | null | undefined): string =>
     (value ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT_LENGTH);
+  const isDialCodeLiteral = (value: string): boolean => /^\+\s?\d{1,4}$/u.test(value.trim());
 
   const isVisible = (element: Element): boolean => {
     const style = window.getComputedStyle(element);
@@ -250,46 +255,98 @@ export function collectPageFieldSignals(): PageScanResult {
       ancestor = ancestor.parentElement;
     }
 
-    // Also support libraries that render the prefix and number as adjacent sibling
-    // controls without a shared wrapper. A narrow input can act as the prefix just as a
-    // native select can; no current value is inspected.
+    // Also support libraries that render the prefix and number as adjacent controls
+    // without a shared wrapper. Search previously scanned controls by rendered position
+    // rather than DOM adjacency because component libraries may insert hidden inputs.
     if (!visualGroupRole && element instanceof HTMLInputElement) {
-      const previousCandidate = candidates[ordinal - 1];
-      if (
-        (previousCandidate instanceof HTMLInputElement ||
-          previousCandidate instanceof HTMLSelectElement) &&
-        isVisible(previousCandidate)
-      ) {
-        const previousRect = previousCandidate.getBoundingClientRect();
-        const horizontalGap = controlRect.left - previousRect.right;
-        const verticalCenterDelta = Math.abs(
-          previousRect.top + previousRect.height / 2 - (controlRect.top + controlRect.height / 2),
+      const adjacentPrefix = scannedControls
+        .map((record) => ({ ...record, rect: record.element.getBoundingClientRect() }))
+        .filter((record) => {
+          const horizontalGap = controlRect.left - record.rect.right;
+          const verticalCenterDelta = Math.abs(
+            record.rect.top + record.rect.height / 2 - (controlRect.top + controlRect.height / 2),
+          );
+          const isCompactPrefix =
+            record.element instanceof HTMLSelectElement ||
+            record.rect.width <= controlRect.width * 0.65;
+          return (
+            isCompactPrefix &&
+            horizontalGap >= -4 &&
+            horizontalGap <= 24 &&
+            verticalCenterDelta <= 12
+          );
+        })
+        .sort((left, right) => right.rect.right - left.rect.right)[0];
+
+      if (adjacentPrefix) {
+        visualGroupRole = 'main';
+        visualBounds = {
+          bottom: Math.max(controlRect.bottom, adjacentPrefix.rect.bottom),
+          height:
+            Math.max(controlRect.bottom, adjacentPrefix.rect.bottom) -
+            Math.min(controlRect.top, adjacentPrefix.rect.top),
+          left: adjacentPrefix.rect.left,
+          right: Math.max(controlRect.right, adjacentPrefix.rect.right),
+          top: Math.min(controlRect.top, adjacentPrefix.rect.top),
+          width: Math.max(controlRect.right, adjacentPrefix.rect.right) - adjacentPrefix.rect.left,
+        };
+        adjacentPrefix.signal.visualGroupRole = 'prefix';
+      }
+    }
+
+    // A custom calling-code widget may not be a form control at all. A short +NN text
+    // fragment immediately to the left of an input is enough to recover the full visual
+    // phone row without ever reading either control's current value.
+    if (element instanceof HTMLInputElement && visualGroupRole !== 'prefix') {
+      const dialCodeText = visualTextCandidates
+        .filter((candidate) => isDialCodeLiteral(candidate.text))
+        .map((candidate) => ({
+          ...candidate,
+          horizontalGap: controlRect.left - candidate.rect.right,
+          verticalCenterDelta: Math.abs(
+            candidate.rect.top +
+              candidate.rect.height / 2 -
+              (controlRect.top + controlRect.height / 2),
+          ),
+        }))
+        .filter(
+          (candidate) =>
+            candidate.horizontalGap >= -4 &&
+            candidate.horizontalGap <= 320 &&
+            candidate.verticalCenterDelta <= Math.max(controlRect.height, 28),
+        )
+        .sort((left, right) => left.horizontalGap - right.horizontalGap)[0];
+
+      if (dialCodeText) {
+        visualGroupRole = 'main';
+        const groupLeft = Math.max(
+          0,
+          dialCodeText.rect.left - Math.min(24, controlRect.height / 2),
         );
-        const isCompactPrefix =
-          previousCandidate instanceof HTMLSelectElement ||
-          previousRect.width <= controlRect.width * 0.65;
-        if (
-          isCompactPrefix &&
-          horizontalGap >= -4 &&
-          horizontalGap <= 24 &&
-          verticalCenterDelta <= 12
-        ) {
-          visualGroupRole = 'main';
-          visualBounds = {
-            bottom: Math.max(controlRect.bottom, previousRect.bottom),
-            height:
-              Math.max(controlRect.bottom, previousRect.bottom) -
-              Math.min(controlRect.top, previousRect.top),
-            left: previousRect.left,
-            right: Math.max(controlRect.right, previousRect.right),
-            top: Math.min(controlRect.top, previousRect.top),
-            width: Math.max(controlRect.right, previousRect.right) - previousRect.left,
-          };
-          const previousField = fields[fields.length - 1];
-          if (previousField?.locator.ordinal === ordinal - 1) {
-            previousField.visualGroupRole = 'prefix';
-          }
-        }
+        visualBounds = {
+          bottom: controlRect.bottom,
+          height: controlRect.height,
+          left: Math.min(visualBounds.left, groupLeft),
+          right: visualBounds.right,
+          top: controlRect.top,
+          width: visualBounds.right - Math.min(visualBounds.left, groupLeft),
+        };
+
+        const renderedPrefix = scannedControls
+          .map((record) => ({ ...record, rect: record.element.getBoundingClientRect() }))
+          .filter((record) => {
+            const verticalCenterDelta = Math.abs(
+              record.rect.top + record.rect.height / 2 - (controlRect.top + controlRect.height / 2),
+            );
+            return (
+              record.rect.left <= dialCodeText.rect.left + 8 &&
+              record.rect.right >= dialCodeText.rect.right - 8 &&
+              record.rect.right <= controlRect.left + 24 &&
+              verticalCenterDelta <= 12
+            );
+          })
+          .sort((left, right) => right.rect.right - left.rect.right)[0];
+        if (renderedPrefix) renderedPrefix.signal.visualGroupRole = 'prefix';
       }
     }
 
@@ -343,8 +400,15 @@ export function collectPageFieldSignals(): PageScanResult {
     }
 
     const tagName = element.tagName.toLowerCase() as 'input' | 'select' | 'textarea';
-    const combinedLabels = new Set([...labels, ...visualLabels]);
-    fields.push({
+    const codeLabels = [...labels].filter(
+      (label) => visualGroupRole !== 'main' || !isDialCodeLiteral(label),
+    );
+    const combinedLabels = new Set(
+      visualGroupRole === 'main'
+        ? [...visualLabels, ...codeLabels]
+        : [...codeLabels, ...visualLabels],
+    );
+    const signal: RawFieldSignal = {
       locator: {
         ordinal,
         tagName,
@@ -358,7 +422,7 @@ export function collectPageFieldSignals(): PageScanResult {
       ),
       ariaLabel: cleanText(element.getAttribute('aria-label')),
       labels: [...combinedLabels].slice(0, 4),
-      codeLabels: [...labels].slice(0, 4),
+      codeLabels: codeLabels.slice(0, 4),
       visualLabels: [...visualLabels].slice(0, 2),
       visualGroupRole,
       required: element.required,
@@ -368,7 +432,9 @@ export function collectPageFieldSignals(): PageScanResult {
             ? element.maxLength
             : null
           : null,
-    });
+    };
+    fields.push(signal);
+    scannedControls.push({ element, signal });
   }
 
   return {

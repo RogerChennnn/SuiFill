@@ -63,6 +63,34 @@ describe('encrypted per-site rules', () => {
     );
   });
 
+  it('ignores a stale incompatible rule for a composite phone main input', () => {
+    const signal = fieldSignal();
+    signal.labels = ['手机号码'];
+    signal.visualLabels = ['手机号码'];
+    signal.visualGroupRole = 'main';
+    const field: ClassifiedField = {
+      signal,
+      semantic: 'phone',
+      confidence: 0.88,
+      evidence: ['组合控件视觉标签为电话'],
+    };
+    const rule = createSiteRule(
+      'jobs.example.test',
+      [createSiteMapping(signal, { kind: 'semantic', semantic: 'fullName' })],
+      { id: 'stale-composite-rule', now: TEST_TIME },
+    );
+    const workspace = saveSiteRule(
+      createEmptyVault(TEST_TIME).workspaces['zh-CN'],
+      rule,
+      TEST_TIME,
+    );
+
+    const applied = applySiteRule([field], workspace, 'jobs.example.test');
+
+    expect(applied[0]!.semantic).toBe('phone');
+    expect(applied[0]!.confidence).toBe(0.88);
+  });
+
   it('resolves a direct custom-field mapping only when the preset includes that field', () => {
     const customField = createCustomField(
       {

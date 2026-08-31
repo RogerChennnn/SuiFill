@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.5] - 2026-09-01
+
+- Fix the complete scan-to-fill path for custom phone rows so the full number targets only the main input and never the calling-code component.
+- Detect phone prefixes across hidden component inputs or from a rendered `+NN` fragment when the shared wrapper also contains validation text.
+- Exclude non-select prefix inputs from fill plans and reject stale site mappings that conflict with composite phone roles.
+- Re-query form controls before every fill instruction so React/Vue rerenders cannot make later writes target detached elements while being reported as successful.
+- Add end-to-end regressions that build a preset preview and verify the visible main phone input is filled while `+86` remains unchanged.
+
 ## [0.2.4] - 2026-09-01
 
 - Fuse separate webpage-code and rendered-position signals, raising confidence when both identify the same field.

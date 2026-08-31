@@ -28,3 +28,5 @@ The v0.2.2 regressions add DOM-backed coverage for component-library labels and 
 The v0.2.3 regression separates visible Chinese labels from their controls into unrelated layout branches, assigns realistic page rectangles, and requires correct classification of full name, phone country code, phone number, and email without exposing pre-existing control values.
 
 The v0.2.4 regressions model a ByteDance-style bordered phone row in two forms: a narrow input-based calling-code prefix plus a wide number input, and a non-form custom prefix plus a number input. They require the main field to resolve as phone, an eligible prefix to resolve as phone country code, and agreeing code/visual signals to raise confidence without value reads.
+
+The v0.2.5 regressions run the ByteDance-style row through scanning, classification, preset resolution, and actual DOM filling. They require hidden component inputs and validation text not to break grouping, keep the custom `+86` prefix unchanged, write the stored phone only to the main input, ignore incompatible stale site rules, and re-resolve a later control after an earlier event replaces its DOM node.

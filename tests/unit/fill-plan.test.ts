@@ -173,4 +173,20 @@ describe('fill plan builder', () => {
     expect(plan[0]!.selectedByDefault).toBe(false);
     expect(plan[0]!.requiresExplicitConfirmation).toBe(true);
   });
+
+  it('excludes a custom prefix input and forces the main composite field to phone', () => {
+    const { workspace, preset } = createPopulatedVault();
+    const prefix = classified(4, 'phone', '+86', 0.68);
+    prefix.signal.visualGroupRole = 'prefix';
+    const main = classified(6, 'fullName', '手机号码', 0.68);
+    main.signal.visualGroupRole = 'main';
+    main.signal.visualLabels = ['手机号码'];
+
+    const plan = buildFillPlan([prefix, main], workspace, preset);
+
+    expect(plan).toHaveLength(1);
+    expect(plan[0]!.locator.ordinal).toBe(6);
+    expect(plan[0]!.semantic).toBe('phone');
+    expect(plan[0]!.value).toBe('222-0000');
+  });
 });

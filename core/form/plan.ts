@@ -20,7 +20,29 @@ export function buildFillPlan(
     .map((id) => workspace.customFields.find((field) => field.id === id))
     .filter((field): field is CustomField => Boolean(field));
 
-  return fields.flatMap((field) => {
+  return fields.flatMap((originalField) => {
+    if (
+      originalField.signal.visualGroupRole === 'prefix' &&
+      originalField.signal.locator.tagName !== 'select'
+    ) {
+      return [];
+    }
+    const field: ClassifiedField =
+      originalField.signal.visualGroupRole === 'main'
+        ? {
+            ...originalField,
+            semantic: 'phone',
+            customFieldId: undefined,
+            confidence: Math.max(originalField.confidence, 0.88),
+          }
+        : originalField.signal.visualGroupRole === 'prefix'
+          ? {
+              ...originalField,
+              semantic: 'phoneCountryCode',
+              customFieldId: undefined,
+              confidence: Math.max(originalField.confidence, 0.86),
+            }
+          : originalField;
     const mappedCustom = field.customFieldId
       ? customFields.find((customField) => customField.id === field.customFieldId)
       : undefined;

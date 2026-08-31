@@ -1,7 +1,16 @@
 import { parseHTML } from 'linkedom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { classifyFields } from '../../core/form/classifier';
+import { applyFillInstructions } from '../../core/form/filler';
+import { buildFillPlan } from '../../core/form/plan';
 import { collectPageFieldSignals } from '../../core/form/scanner';
+import {
+  createContact,
+  createPreset,
+  savePreset,
+  saveVaultEntity,
+} from '../../core/vault/entities';
+import { createEmptyVault } from '../../core/vault/schema';
 
 function installDom(html: string) {
   const parsed = parseHTML(html);
@@ -58,6 +67,7 @@ function installDom(html: string) {
   vi.stubGlobal('HTMLInputElement', testWindow.HTMLInputElement);
   vi.stubGlobal('HTMLSelectElement', testWindow.HTMLSelectElement);
   vi.stubGlobal('HTMLTextAreaElement', testWindow.HTMLTextAreaElement);
+  vi.stubGlobal('Event', testWindow.Event);
 }
 
 afterEach(() => {
@@ -113,9 +123,11 @@ describe('page field scanner', () => {
         </div>
         <div class="controls">
           <input data-box="100,108,300,40" value="fictional-existing-name" />
-          <div class="phone-shell" data-box="100,208,740,40">
+          <div class="phone-shell" data-box="100,208,740,70">
             <input data-box="100,208,200,40" aria-label="+86" />
+            <input type="hidden" />
             <input data-box="300,208,540,40" value="fictional-existing-phone" />
+            <span data-box="100,252,120,18">手机号码为必填</span>
           </div>
           <input data-box="100,308,300,40" value="fictional-existing-email" />
         </div>
@@ -144,9 +156,10 @@ describe('page field scanner', () => {
     installDom(`
       <section>
         <span data-box="100,80,80,20">手机号码</span>
-        <div class="phone-shell" data-box="100,108,740,40">
+        <div class="phone-shell" data-box="100,108,740,70">
           <div data-box="100,108,200,40">+86</div>
           <input data-box="300,108,540,40" value="fictional-existing-phone" />
+          <span data-box="100,152,120,18">手机号码为必填</span>
         </div>
       </section>
     `);
@@ -158,5 +171,98 @@ describe('page field scanner', () => {
     expect(scan.fields[0]!.visualLabels).toContain('手机号码');
     expect(classified[0]!.semantic).toBe('phone');
     expect(JSON.stringify(scan)).not.toContain('fictional-existing');
+  });
+
+  it('builds and applies a phone-only plan to the main input, never the custom prefix', () => {
+    installDom(`
+      <section>
+        <span data-box="100,80,80,20">手机号码</span>
+        <div class="phone-shell" data-box="100,108,740,70">
+          <input data-box="100,108,200,40" aria-label="+86" value="+86" />
+          <input type="hidden" />
+          <input data-box="300,108,540,40" />
+          <span data-box="100,152,120,18">手机号码为必填</span>
+        </div>
+      </section>
+    `);
+
+    const now = new Date('2026-09-01T00:00:00.000Z');
+    const contact = createContact(
+      {
+        label: '示例联系方式',
+        email: '',
+        alternateEmail: '',
+        phone: '1110000',
+        alternatePhone: '',
+        countryCode: '+86',
+        wechat: '',
+        telegram: '',
+        instagram: '',
+        whatsapp: '',
+        additionalLink1: '',
+        additionalLink2: '',
+        additionalLink3: '',
+        purpose: '',
+      },
+      { id: 'contact-phone-flow', now },
+    );
+    const preset = createPreset(
+      {
+        label: '示例求职',
+        description: '',
+        identityId: null,
+        contactId: contact.id,
+        addressId: null,
+        customFieldIds: [],
+      },
+      { id: 'preset-phone-flow', now },
+    );
+    let workspace = createEmptyVault(now).workspaces['zh-CN'];
+    workspace = saveVaultEntity(workspace, 'contacts', contact, now);
+    workspace = savePreset(workspace, preset, now);
+
+    const scan = collectPageFieldSignals();
+    const plan = buildFillPlan(classifyFields(scan.fields), workspace, preset);
+    const result = applyFillInstructions(
+      plan.map((item) => ({ locator: item.locator, value: item.value })),
+      'jobs.example.test',
+    );
+    const controls = Array.from(document.querySelectorAll('input'));
+
+    expect(plan.map((item) => item.semantic)).toEqual(['phone']);
+    expect(plan[0]!.targetLabel).toBe('手机号码');
+    expect(result).toEqual({ filled: 1, skippedOccupied: 0, failed: 0, pageMismatch: false });
+    expect((controls[0] as HTMLInputElement).value).toBe('+86');
+    expect((controls[2] as HTMLInputElement).value).toBe('1110000');
+  });
+
+  it('re-resolves later controls after a framework replaces the DOM node', () => {
+    installDom(`
+      <form>
+        <input id="full-name" />
+        <input id="phone" />
+      </form>
+    `);
+    document.getElementById('full-name')!.addEventListener('input', () => {
+      const currentPhone = document.getElementById('phone')!;
+      currentPhone.replaceWith(currentPhone.cloneNode(true));
+    });
+
+    const result = applyFillInstructions(
+      [
+        {
+          locator: { ordinal: 0, tagName: 'input', id: 'full-name', name: '' },
+          value: 'Example Name',
+        },
+        {
+          locator: { ordinal: 1, tagName: 'input', id: 'phone', name: '' },
+          value: '1110000',
+        },
+      ],
+      'jobs.example.test',
+    );
+
+    expect(result.filled).toBe(2);
+    expect((document.getElementById('phone') as HTMLInputElement).value).toBe('1110000');
   });
 });

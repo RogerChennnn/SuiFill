@@ -19,10 +19,12 @@ The responsible-disclosure contact will be added before public release. Until th
 - Scanning never reads current form-control values.
 - Position-based label recovery is bounded to short visible DOM text near a control; it captures no screenshot and performs no OCR.
 - Composite-control detection uses only element rectangles, tag/attribute metadata, and control ordering; it never inspects a calling-code or phone input's current value.
+- Non-select composite prefixes are excluded from automatic fill plans, and stale site rules cannot remap a detected phone prefix/main role to an incompatible field type.
 - Fill preview values remain in extension-page memory.
 - Only user-checked value/locator instructions reach the scanned page document.
 - Non-empty controls are never overwritten.
 - The filler contains no form submission, page-control click, or navigation call.
+- The filler re-resolves each target immediately before writing so framework rerenders cannot leave later instructions pointing at detached controls.
 - Per-site rules, including hostnames and field signatures, are encrypted at rest and never apply outside an exact normalized hostname.
 - Structurally unlabeled fields receive a bounded ordinal fallback signature. Authenticated legacy vaults affected by an older empty-signature bug discard only those invalid mappings during migration and preserve the remaining vault data.
 
