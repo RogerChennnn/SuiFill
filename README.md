@@ -40,7 +40,8 @@ The production Chrome bundle is generated in `.output/chrome-mv3/`.
 2. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
 3. Enable **Developer mode**.
 4. Choose **Load unpacked** and select `.output/chrome-mv3/` (or the unzipped artifact folder).
-5. Pin SuiFill, open it from the toolbar, and create a master password.
+5. Pin SuiFill and open it by clicking its browser-toolbar icon. This click grants temporary access to the current page and opens the side panel.
+6. Create a master password. After navigating to a different site, click the toolbar icon again before scanning.
 
 Use only fictional information while evaluating a release candidate. Chrome/Edge will show that a developer-mode extension is unpacked; this is expected for a GitHub-distributed test build.
 

@@ -1,10 +1,11 @@
 export default defineBackground(() => {
-  const enableActionToOpenSidePanel = async () => {
-    await browser.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
-  };
+  // Opening the panel from Chrome's side-panel picker does not grant activeTab.
+  // Handle the toolbar action explicitly so the same click both grants temporary
+  // access to the current page and opens SuiFill's side panel.
+  void browser.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
 
-  void enableActionToOpenSidePanel();
-  browser.runtime.onInstalled.addListener(() => {
-    void enableActionToOpenSidePanel();
+  browser.action.onClicked.addListener((tab) => {
+    if (tab.id === undefined) return;
+    void browser.sidePanel.open({ tabId: tab.id });
   });
 });

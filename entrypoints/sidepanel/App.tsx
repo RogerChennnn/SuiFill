@@ -365,7 +365,7 @@ function App() {
           <p className="eyebrow">LOCAL-FIRST AUTOFILL</p>
           <h1>{PROJECT_NAME}</h1>
         </div>
-        <span className="version-badge">v0.1</span>
+        <span className="version-badge">v0.1.1</span>
       </header>
 
       {renderVaultCard()}

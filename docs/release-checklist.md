@@ -13,6 +13,7 @@
 - [x] Injected filler contains no submit, requestSubmit, or click call.
 - [x] Application source contains no fetch, XMLHttpRequest, WebSocket, sendBeacon, analytics, or telemetry call.
 - [x] Application source contains no console logging.
+- [x] Browser toolbar action explicitly opens the side panel so its click grants `activeTab` for the current page.
 
 ## Browser smoke test
 
@@ -31,8 +32,8 @@ Completed on 2026-08-27 at a 430 × 900 side-panel viewport with an isolated loc
 
 ## Candidate artifact
 
-- File: `.output/suifill-0.1.0-chrome.zip`
-- SHA-256: `A0632A74710CD22DC079FB716F1E8FA6777BDBCE5D351DBA46A50F5BB6ED8234`
+- File: `.output/suifill-0.1.1-chrome.zip`
+- SHA-256: `3E55903B401D0EAC4231523C581A916DF84DAADA9627B3FFF841ECB22B6D3C9A`
 - Contents: Manifest V3 extension bundle only; no test harness, source map, backup, or personal-data fixture.
 
 ## Human gates before public distribution

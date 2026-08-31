@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.1] - 2026-08-28
+
+- Fix the Chrome side-panel authorization flow by handling the toolbar action explicitly, and explain that opening SuiFill from the side-panel picker does not grant temporary page access.
+
 All notable changes to SuiFill will be documented in this file.
 
 ## [0.1.0-rc.1] - 2026-08-27

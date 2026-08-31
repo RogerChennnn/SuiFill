@@ -114,7 +114,9 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
       });
     } catch {
       setScan(null);
-      setMessage('当前页面不允许扫描，或浏览器没有授予临时访问权限。请在普通网页上重试。');
+      setMessage(
+        '尚未获得当前页面的临时权限。请先固定并点击浏览器工具栏上的 SuiFill 图标，再回到这里扫描；切换网站后需要重新点击一次。',
+      );
     } finally {
       setBusy(false);
     }
@@ -284,7 +286,8 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
       </div>
 
       <p className="scanner-intro">
-        扫描不读取已输入内容；填充前必须逐项预览确认，且不会覆盖页面已有内容。
+        请从浏览器工具栏点击 SuiFill
+        打开本面板，以临时授权当前页面。扫描不读取已输入内容；填充前必须逐项预览确认，且不会覆盖页面已有内容。
       </p>
 
       <button
