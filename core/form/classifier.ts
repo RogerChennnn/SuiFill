@@ -371,10 +371,13 @@ export function classifyFields(signals: RawFieldSignal[]): ClassifiedField[] {
   return classified.map((field, index) => {
     const next = classified[index + 1];
     if (
-      field.signal.locator.tagName === 'select' &&
+      (field.signal.locator.tagName === 'select' ||
+        field.signal.visualGroupRole === 'prefix' ||
+        looksLikeDialCodeSignal(field.signal)) &&
       field.semantic === 'phone' &&
       next?.semantic === 'phone' &&
       next.signal.locator.tagName === 'input' &&
+      next.signal.visualGroupRole !== 'prefix' &&
       haveSharedLabel(field.signal.labels, next.signal.labels)
     ) {
       return {
@@ -393,25 +396,47 @@ function haveSharedLabel(left: string[], right: string[]): boolean {
   return left.some((label) => normalizedRight.has(normalize(label)));
 }
 
+function looksLikeDialCodeSignal(signal: RawFieldSignal): boolean {
+  const hint = [
+    signal.placeholder,
+    signal.ariaLabel,
+    signal.locator.name,
+    signal.locator.id,
+    ...signal.labels,
+  ].join(' ');
+  return (
+    /(?:^|\s)\+\d{1,4}(?:\s|$)/u.test(hint) ||
+    /(?:country|calling|dial)[ _-]?(?:code|prefix)/iu.test(hint)
+  );
+}
+
 function scoreRule(
   signal: RawFieldSignal,
   rule: Rule,
 ): { semantic: Rule['semantic']; score: number; evidence: string[] } {
   let score = 0;
   const evidence: string[] = [];
+  let matchedCodeSignal = false;
   const autocompleteTokens = signal.autocomplete.toLowerCase().split(/\s+/).filter(Boolean);
 
   if (rule.autocomplete.some((token) => autocompleteTokens.includes(token))) {
     score = 0.99;
+    matchedCodeSignal = true;
     evidence.push('网页提供了标准 autocomplete');
   }
   if (rule.inputTypes?.includes(signal.inputType) && score < 0.92) {
     score = 0.92;
+    matchedCodeSignal = true;
     evidence.push(`字段类型为 ${signal.inputType}`);
   }
 
+  const visualLabels = signal.visualLabels ?? [];
+  const normalizedVisualLabels = new Set(visualLabels.map(normalize).filter(Boolean));
+  const structuralLabels =
+    signal.codeLabels ??
+    signal.labels.filter((label) => !normalizedVisualLabels.has(normalize(label)));
   const sources = [
-    { value: signal.labels.join(' '), weight: 0.9, evidence: '匹配字段标签' },
+    { value: structuralLabels.join(' '), weight: 0.9, evidence: '匹配网页代码标签' },
     { value: signal.ariaLabel, weight: 0.88, evidence: '匹配无障碍标签' },
     {
       value: `${signal.locator.name} ${signal.locator.id}`,
@@ -427,6 +452,17 @@ function scoreRule(
     if (matchQuality > 0 && candidateScore > score) {
       score = candidateScore;
       evidence.push(source.evidence);
+    }
+    if (matchQuality > 0) matchedCodeSignal = true;
+  }
+
+  const visualMatchQuality = getAliasMatchQuality(visualLabels.join(' '), rule.aliases);
+  if (visualMatchQuality > 0) {
+    score = Math.max(score, 0.88 * visualMatchQuality);
+    evidence.push('匹配视觉位置标签');
+    if (matchedCodeSignal) {
+      score = Math.max(score, 0.98);
+      evidence.push('网页代码与视觉位置相互确认');
     }
   }
 

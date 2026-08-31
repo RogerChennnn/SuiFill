@@ -42,6 +42,9 @@ export interface RawFieldSignal {
   placeholder: string;
   ariaLabel: string;
   labels: string[];
+  codeLabels?: string[];
+  visualLabels?: string[];
+  visualGroupRole?: 'prefix' | 'main';
   required: boolean;
   maxLength: number | null;
 }

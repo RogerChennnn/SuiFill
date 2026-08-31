@@ -64,4 +64,18 @@ describe('form semantic classifier', () => {
     expect(results.map((item) => item.semantic)).toEqual(['fullName', 'email']);
     expect(results.every((item) => item.evidence.length > 0)).toBe(true);
   });
+
+  it('raises confidence when code and visual-layout signals agree', () => {
+    const result = classifyField(
+      signal({
+        labels: ['手机号码'],
+        codeLabels: ['手机号码'],
+        visualLabels: ['手机号码'],
+      }),
+    );
+
+    expect(result.semantic).toBe('phone');
+    expect(result.confidence).toBe(0.98);
+    expect(result.evidence).toContain('网页代码与视觉位置相互确认');
+  });
 });

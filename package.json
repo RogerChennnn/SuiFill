@@ -2,7 +2,7 @@
   "name": "suifill",
   "description": "Local-first multi-profile form filling for Chrome and Edge.",
   "private": true,
-  "version": "0.2.3",
+  "version": "0.2.4",
   "type": "module",
   "scripts": {
     "dev": "wxt",

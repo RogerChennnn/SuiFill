@@ -18,6 +18,7 @@ The responsible-disclosure contact will be added before public release. Until th
 
 - Scanning never reads current form-control values.
 - Position-based label recovery is bounded to short visible DOM text near a control; it captures no screenshot and performs no OCR.
+- Composite-control detection uses only element rectangles, tag/attribute metadata, and control ordering; it never inspects a calling-code or phone input's current value.
 - Fill preview values remain in extension-page memory.
 - Only user-checked value/locator instructions reach the scanned page document.
 - Non-empty controls are never overwritten.

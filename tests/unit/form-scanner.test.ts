@@ -69,19 +69,19 @@ describe('page field scanner', () => {
     installDom(`
       <form>
         <div class="form-item">
-          <div class="form-title">姓名</div>
-          <div><input value="fictional-existing-name" /></div>
+          <div class="form-title" data-box="100,80,40,20">姓名</div>
+          <div><input data-box="100,108,300,40" value="fictional-existing-name" /></div>
         </div>
         <div class="form-item">
-          <div class="form-title">手机号码</div>
+          <div class="form-title" data-box="100,180,80,20">手机号码</div>
           <div class="phone-row">
-            <select><option>+65</option></select>
-            <input value="fictional-existing-phone" />
+            <select data-box="100,208,80,40"><option>+65</option></select>
+            <input data-box="190,208,210,40" value="fictional-existing-phone" />
           </div>
         </div>
         <div class="form-item">
-          <span>邮箱</span>
-          <div><input value="fictional-existing-email" /></div>
+          <span data-box="100,280,40,20">邮箱</span>
+          <div><input data-box="100,308,300,40" value="fictional-existing-email" /></div>
         </div>
       </form>
     `);
@@ -113,8 +113,10 @@ describe('page field scanner', () => {
         </div>
         <div class="controls">
           <input data-box="100,108,300,40" value="fictional-existing-name" />
-          <select data-box="100,208,220,40"><option>+65</option></select>
-          <input data-box="330,208,210,40" value="fictional-existing-phone" />
+          <div class="phone-shell" data-box="100,208,740,40">
+            <input data-box="100,208,200,40" aria-label="+86" />
+            <input data-box="300,208,540,40" value="fictional-existing-phone" />
+          </div>
           <input data-box="100,308,300,40" value="fictional-existing-email" />
         </div>
       </section>
@@ -135,6 +137,26 @@ describe('page field scanner', () => {
       'phone',
       'email',
     ]);
+    expect(JSON.stringify(scan)).not.toContain('fictional-existing');
+  });
+
+  it('uses a shared visual shell when the calling-code widget is not a form control', () => {
+    installDom(`
+      <section>
+        <span data-box="100,80,80,20">手机号码</span>
+        <div class="phone-shell" data-box="100,108,740,40">
+          <div data-box="100,108,200,40">+86</div>
+          <input data-box="300,108,540,40" value="fictional-existing-phone" />
+        </div>
+      </section>
+    `);
+
+    const scan = collectPageFieldSignals();
+    const classified = classifyFields(scan.fields);
+
+    expect(scan.fields[0]!.visualGroupRole).toBe('main');
+    expect(scan.fields[0]!.visualLabels).toContain('手机号码');
+    expect(classified[0]!.semantic).toBe('phone');
     expect(JSON.stringify(scan)).not.toContain('fictional-existing');
   });
 });

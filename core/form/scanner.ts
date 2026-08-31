@@ -25,16 +25,17 @@ export function collectPageFieldSignals(): PageScanResult {
     );
   };
 
+  type VisualRect = {
+    bottom: number;
+    height: number;
+    left: number;
+    right: number;
+    top: number;
+    width: number;
+  };
   type VisualTextCandidate = {
     text: string;
-    rect: {
-      bottom: number;
-      height: number;
-      left: number;
-      right: number;
-      top: number;
-      width: number;
-    };
+    rect: VisualRect;
   };
 
   // Some modern form libraries place the visible label and its control in unrelated DOM
@@ -181,18 +182,82 @@ export function collectPageFieldSignals(): PageScanResult {
       }
     }
 
-    if (labels.size === 0) {
-      const controlRect = element.getBoundingClientRect();
-      let visualControlLeft = controlRect.left;
-      let visualControlRight = controlRect.right;
+    const visualLabels = new Set<string>();
+    let visualGroupRole: RawFieldSignal['visualGroupRole'];
+    const controlRect = element.getBoundingClientRect();
+    let visualBounds: VisualRect = {
+      bottom: controlRect.bottom,
+      height: controlRect.height,
+      left: controlRect.left,
+      right: controlRect.right,
+      top: controlRect.top,
+      width: controlRect.width,
+    };
 
-      // A phone number is often rendered as a wide country-code selector followed by
-      // a number input. Treat an immediately adjacent select as the visual start of the
-      // current control group so the shared label above the selector can reach the input.
+    // Custom phone widgets often use one bordered row containing a non-native prefix
+    // control and a regular number input. Detect that rendered group independently of
+    // tag names. Equal-width, separated controls (for example first/last name) are not
+    // treated as one field.
+    let ancestor = element.parentElement;
+    for (let depth = 0; depth < 4 && ancestor; depth += 1) {
+      const ancestorRect = ancestor.getBoundingClientRect();
+      const visibleControls = Array.from(
+        ancestor.querySelectorAll('input, select, textarea'),
+      ).filter(isVisible);
+      const controlRects = visibleControls
+        .map((control) => control.getBoundingClientRect())
+        .sort((left, right) => left.left - right.left);
+      const widths = controlRects.map((rect) => rect.width).filter((width) => width > 0);
+      const unequalControlWidths =
+        widths.length >= 2 && Math.min(...widths) <= Math.max(...widths) * 0.65;
+      const controlsTouch = controlRects.some((rect, index) => {
+        const next = controlRects[index + 1];
+        return Boolean(next && next.left - rect.right >= -4 && next.left - rect.right <= 8);
+      });
+      const couldBeComposite =
+        visibleControls.length === 1 ||
+        (visibleControls.length <= 3 && unequalControlWidths && controlsTouch);
+      const topDelta = Math.abs(ancestorRect.top - controlRect.top);
+      const bottomDelta = Math.abs(ancestorRect.bottom - controlRect.bottom);
+      const leftExtension = controlRect.left - ancestorRect.left;
+      const rightExtension = ancestorRect.right - controlRect.right;
+      const boundedWidth = ancestorRect.width <= controlRect.width * 5 + 320;
+
+      if (
+        couldBeComposite &&
+        boundedWidth &&
+        topDelta <= 8 &&
+        bottomDelta <= 8 &&
+        ancestorRect.width > controlRect.width + 24
+      ) {
+        if (leftExtension > Math.max(40, controlRect.width * 0.15) && rightExtension <= 24) {
+          visualGroupRole = 'main';
+        } else if (leftExtension <= 24 && rightExtension > Math.max(40, controlRect.width * 0.2)) {
+          visualGroupRole = 'prefix';
+        }
+        if (visualGroupRole) {
+          visualBounds = {
+            bottom: ancestorRect.bottom,
+            height: ancestorRect.height,
+            left: ancestorRect.left,
+            right: ancestorRect.right,
+            top: ancestorRect.top,
+            width: ancestorRect.width,
+          };
+          break;
+        }
+      }
+      ancestor = ancestor.parentElement;
+    }
+
+    // Also support libraries that render the prefix and number as adjacent sibling
+    // controls without a shared wrapper. A narrow input can act as the prefix just as a
+    // native select can; no current value is inspected.
+    if (!visualGroupRole && element instanceof HTMLInputElement) {
       const previousCandidate = candidates[ordinal - 1];
       if (
-        element instanceof HTMLInputElement &&
-        previousCandidate instanceof HTMLSelectElement &&
+        (previousCandidate instanceof HTMLInputElement ||
+          previousCandidate instanceof HTMLSelectElement) &&
         isVisible(previousCandidate)
       ) {
         const previousRect = previousCandidate.getBoundingClientRect();
@@ -200,51 +265,72 @@ export function collectPageFieldSignals(): PageScanResult {
         const verticalCenterDelta = Math.abs(
           previousRect.top + previousRect.height / 2 - (controlRect.top + controlRect.height / 2),
         );
-        if (horizontalGap >= -4 && horizontalGap <= 24 && verticalCenterDelta <= 12) {
-          visualControlLeft = previousRect.left;
-          visualControlRight = Math.max(controlRect.right, previousRect.right);
+        const isCompactPrefix =
+          previousCandidate instanceof HTMLSelectElement ||
+          previousRect.width <= controlRect.width * 0.65;
+        if (
+          isCompactPrefix &&
+          horizontalGap >= -4 &&
+          horizontalGap <= 24 &&
+          verticalCenterDelta <= 12
+        ) {
+          visualGroupRole = 'main';
+          visualBounds = {
+            bottom: Math.max(controlRect.bottom, previousRect.bottom),
+            height:
+              Math.max(controlRect.bottom, previousRect.bottom) -
+              Math.min(controlRect.top, previousRect.top),
+            left: previousRect.left,
+            right: Math.max(controlRect.right, previousRect.right),
+            top: Math.min(controlRect.top, previousRect.top),
+            width: Math.max(controlRect.right, previousRect.right) - previousRect.left,
+          };
+          const previousField = fields[fields.length - 1];
+          if (previousField?.locator.ordinal === ordinal - 1) {
+            previousField.visualGroupRole = 'prefix';
+          }
         }
       }
+    }
 
-      const rankedVisualLabels = visualTextCandidates
-        .map((candidate) => {
-          const horizontalOverlap =
-            Math.min(visualControlRight, candidate.rect.right) -
-            Math.max(visualControlLeft, candidate.rect.left);
-          const leftAlignment = Math.abs(candidate.rect.left - visualControlLeft);
-          const aboveGap = controlRect.top - candidate.rect.bottom;
-          const leftGap = controlRect.left - candidate.rect.right;
-          const verticalCenterDelta = Math.abs(
-            candidate.rect.top +
-              candidate.rect.height / 2 -
-              (controlRect.top + controlRect.height / 2),
-          );
-          let score = Number.NEGATIVE_INFINITY;
+    const rankedVisualLabels = visualTextCandidates
+      .map((candidate) => {
+        const horizontalOverlap =
+          Math.min(visualBounds.right, candidate.rect.right) -
+          Math.max(visualBounds.left, candidate.rect.left);
+        const leftAlignment = Math.abs(candidate.rect.left - visualBounds.left);
+        const aboveGap = visualBounds.top - candidate.rect.bottom;
+        const leftGap = visualBounds.left - candidate.rect.right;
+        const verticalCenterDelta = Math.abs(
+          candidate.rect.top +
+            candidate.rect.height / 2 -
+            (visualBounds.top + visualBounds.height / 2),
+        );
+        let score = Number.NEGATIVE_INFINITY;
 
-          const minimumOverlap = Math.min(24, (visualControlRight - visualControlLeft) * 0.15);
-          if (
-            aboveGap >= -4 &&
-            aboveGap <= 72 &&
-            (horizontalOverlap >= minimumOverlap || leftAlignment <= 96)
-          ) {
-            score = Math.max(score, 100 - aboveGap - leftAlignment * 0.08);
-          }
-          if (
-            leftGap >= -4 &&
-            leftGap <= 260 &&
-            verticalCenterDelta <= Math.max(28, controlRect.height)
-          ) {
-            score = Math.max(score, 82 - leftGap * 0.12 - verticalCenterDelta * 0.8);
-          }
+        const minimumOverlap = Math.min(24, visualBounds.width * 0.15);
+        if (
+          aboveGap >= -4 &&
+          aboveGap <= 72 &&
+          (horizontalOverlap >= minimumOverlap || leftAlignment <= 96)
+        ) {
+          score = Math.max(score, 100 - aboveGap - leftAlignment * 0.08);
+        }
+        if (
+          leftGap >= -4 &&
+          leftGap <= 260 &&
+          verticalCenterDelta <= Math.max(28, visualBounds.height)
+        ) {
+          score = Math.max(score, 82 - leftGap * 0.12 - verticalCenterDelta * 0.8);
+        }
 
-          return { score, text: candidate.text };
-        })
-        .filter((candidate) => Number.isFinite(candidate.score))
-        .sort((left, right) => right.score - left.score);
+        return { score, text: candidate.text };
+      })
+      .filter((candidate) => Number.isFinite(candidate.score))
+      .sort((left, right) => right.score - left.score);
 
-      for (const candidate of rankedVisualLabels.slice(0, 2)) {
-        addLabelValue(candidate.text);
-      }
+    for (const candidate of rankedVisualLabels.slice(0, 2)) {
+      visualLabels.add(candidate.text);
     }
 
     if (labels.size === 0) {
@@ -257,6 +343,7 @@ export function collectPageFieldSignals(): PageScanResult {
     }
 
     const tagName = element.tagName.toLowerCase() as 'input' | 'select' | 'textarea';
+    const combinedLabels = new Set([...labels, ...visualLabels]);
     fields.push({
       locator: {
         ordinal,
@@ -270,7 +357,10 @@ export function collectPageFieldSignals(): PageScanResult {
         element.getAttribute('placeholder') || element.getAttribute('data-placeholder'),
       ),
       ariaLabel: cleanText(element.getAttribute('aria-label')),
-      labels: [...labels].slice(0, 4),
+      labels: [...combinedLabels].slice(0, 4),
+      codeLabels: [...labels].slice(0, 4),
+      visualLabels: [...visualLabels].slice(0, 2),
+      visualGroupRole,
       required: element.required,
       maxLength:
         element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement

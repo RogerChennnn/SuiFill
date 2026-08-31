@@ -26,3 +26,5 @@ M8 adds an isolated browser smoke test at a side-panel viewport plus release-tim
 The v0.2.2 regressions add DOM-backed coverage for component-library labels and grouped phone controls without value reads, stable fallback signatures for unlabeled fields, and correct-password recovery of authenticated vaults affected by older empty site signatures.
 
 The v0.2.3 regression separates visible Chinese labels from their controls into unrelated layout branches, assigns realistic page rectangles, and requires correct classification of full name, phone country code, phone number, and email without exposing pre-existing control values.
+
+The v0.2.4 regressions model a ByteDance-style bordered phone row in two forms: a narrow input-based calling-code prefix plus a wide number input, and a non-form custom prefix plus a number input. They require the main field to resolve as phone, an eligible prefix to resolve as phone country code, and agreeing code/visual signals to raise confidence without value reads.

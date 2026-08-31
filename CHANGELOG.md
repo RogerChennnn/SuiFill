@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4] - 2026-09-01
+
+- Fuse separate webpage-code and rendered-position signals, raising confidence when both identify the same field.
+- Recognize custom composite phone widgets whose calling-code prefix is an input or non-form component rather than a native select.
+- Keep the calling-code prefix and main phone input distinct so the full number is assigned only to the main input.
+- Add ByteDance-style regressions for both form-control and non-form calling-code prefixes without reading current control values.
+
 ## [0.2.3] - 2026-09-01
 
 - Associate visually adjacent form labels with controls even when a component library places them in separate DOM branches.
