@@ -78,6 +78,7 @@ export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
   const [selectedPresetId, setSelectedPresetId] = useState('');
   const [plan, setPlan] = useState<FillPlanItem[] | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [overwriteExisting, setOverwriteExisting] = useState(false);
   const [fillResult, setFillResult] = useState<FillExecutionResult | null>(null);
   const [mappingOpen, setMappingOpen] = useState(false);
   const [mappingChoices, setMappingChoices] = useState<Record<string, string>>({});
@@ -93,6 +94,7 @@ export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
   useEffect(() => {
     setPlan(null);
     setSelectedIds(new Set());
+    setOverwriteExisting(false);
     setFillResult(null);
     if (selectedPresetId && !workspace.presets.some((preset) => preset.id === selectedPresetId)) {
       setSelectedPresetId('');
@@ -103,6 +105,7 @@ export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
     setBusy(true);
     setMessage('');
     setPlan(null);
+    setOverwriteExisting(false);
     setFillResult(null);
     setMappingOpen(false);
     setPendingRuleDelete(false);
@@ -145,6 +148,7 @@ export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
 
     const nextPlan = buildFillPlan(classifiedFields, workspace, preset);
     setPlan(nextPlan);
+    setOverwriteExisting(false);
     setSelectedIds(
       new Set(nextPlan.filter((item) => item.selectedByDefault).map((item) => item.id)),
     );
@@ -187,6 +191,7 @@ export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
       const instructions: FillInstruction[] = selected.map((item) => ({
         locator: item.locator,
         value: item.value,
+        overwriteExisting,
       }));
       const [injection] = await browser.scripting.executeScript({
         target: scan.documentId
@@ -336,8 +341,8 @@ export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
 
       <p className="scanner-intro">
         {isZh
-          ? '请从浏览器工具栏点击 SuiFill 打开本面板，以临时授权当前页面。扫描不读取已输入内容；填充前必须逐项预览确认，且不会覆盖页面已有内容。'
-          : 'Open this panel from the SuiFill toolbar icon to grant temporary access to the current page. Scanning never reads entered values; filling requires review and never overwrites existing content.'}
+          ? '请从浏览器工具栏点击 SuiFill 打开本面板，以临时授权当前页面。扫描不读取已输入内容；填充前必须逐项预览确认，默认保护页面已有内容，也可为本次填充显式开启覆盖。'
+          : 'Open this panel from the SuiFill toolbar icon to grant temporary access to the current page. Scanning never reads entered values; filling requires review, protects existing content by default, and can explicitly replace it for this run.'}
       </p>
 
       <button
@@ -541,6 +546,7 @@ export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
                     onChange={(event) => {
                       setSelectedPresetId(event.target.value);
                       setPlan(null);
+                      setOverwriteExisting(false);
                       setFillResult(null);
                     }}
                   >
@@ -619,27 +625,52 @@ export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
               )}
 
               {plan.length > 0 && (
-                <button
-                  type="button"
-                  className="primary-button confirm-fill-button"
-                  disabled={busy || selectedCount === 0}
-                  onClick={() => void fillSelectedFields()}
-                >
-                  {busy
-                    ? isZh
-                      ? '正在填写…'
-                      : 'Filling…'
-                    : isZh
-                      ? `确认填写 ${selectedCount} 项`
-                      : `Fill ${selectedCount} fields`}
-                </button>
+                <>
+                  <label className="safe-checkbox overwrite-option">
+                    <input
+                      type="checkbox"
+                      checked={overwriteExisting}
+                      onChange={(event) => {
+                        setOverwriteExisting(event.target.checked);
+                        setFillResult(null);
+                      }}
+                      disabled={busy}
+                    />
+                    <span>
+                      <strong>{isZh ? '覆盖页面已有内容' : 'Replace existing page values'}</strong>
+                      <small>
+                        {isZh
+                          ? '仅替换本次已勾选字段；未勾选字段保持不变，页面不会自动提交。'
+                          : 'Only selected fields are replaced. Unselected fields stay unchanged, and the page is never submitted.'}
+                      </small>
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    className="primary-button confirm-fill-button"
+                    disabled={busy || selectedCount === 0}
+                    onClick={() => void fillSelectedFields()}
+                  >
+                    {busy
+                      ? isZh
+                        ? '正在填写…'
+                        : 'Filling…'
+                      : overwriteExisting
+                        ? isZh
+                          ? `确认覆盖并填写 ${selectedCount} 项`
+                          : `Replace & fill ${selectedCount} fields`
+                        : isZh
+                          ? `确认填写 ${selectedCount} 项`
+                          : `Fill ${selectedCount} fields`}
+                  </button>
+                </>
               )}
 
               {fillResult && (
                 <p className="fill-result" role="status">
                   {isZh
-                    ? `已填写 ${fillResult.filled} 项；因页面已有内容跳过 ${fillResult.skippedOccupied} 项；未能匹配 ${fillResult.failed} 项。页面尚未提交，请你检查后手动继续。`
-                    : `Filled ${fillResult.filled}; skipped ${fillResult.skippedOccupied} existing values; ${fillResult.failed} could not be matched. The page was not submitted—review it and continue manually.`}
+                    ? `已填写 ${fillResult.filled} 项，其中覆盖已有内容 ${fillResult.overwritten} 项；因保护已有内容跳过 ${fillResult.skippedOccupied} 项；未能匹配 ${fillResult.failed} 项。页面尚未提交，请你检查后手动继续。`
+                    : `Filled ${fillResult.filled}, including ${fillResult.overwritten} replacements; skipped ${fillResult.skippedOccupied} protected existing values; ${fillResult.failed} could not be matched. The page was not submitted—review it and continue manually.`}
                 </p>
               )}
             </div>

@@ -81,10 +81,12 @@ export interface FillPlanItem {
 export interface FillInstruction {
   locator: FieldLocator;
   value: string;
+  overwriteExisting?: boolean;
 }
 
 export interface FillExecutionResult {
   filled: number;
+  overwritten: number;
   skippedOccupied: number;
   failed: number;
   pageMismatch: boolean;

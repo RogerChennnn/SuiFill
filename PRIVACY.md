@@ -26,7 +26,7 @@ The scanner never reads the current value of an input, select, or textarea. Scan
 
 SuiFill creates a per-field preview in extension memory. High-sensitivity, default-disabled, and low-confidence items require individual selection. Only the value and bounded locator for each checked item are injected into the exact tab and page document that was scanned; the page never receives the vault or preset.
 
-The filler does not overwrite non-empty fields and contains no form-submit, page-control click, purchase, registration, navigation, or next-step operation. After filling, the destination page can read those values just as it can read information typed manually. The user is responsible for reviewing the destination site's own privacy practices before continuing.
+The filler protects non-empty fields by default. In the preview, the user may explicitly enable replacement for the current fill action; that permission applies only to checked fields, is not persisted, and sends only the same bounded locator/value instruction plus the per-action replacement flag. The filler contains no form-submit, page-control click, purchase, registration, navigation, or next-step operation. After filling, the destination page can read those values just as it can read information typed manually. The user is responsible for reviewing the destination site's own privacy practices before continuing.
 
 ## Per-site rules
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.6] - 2026-09-01
+
+- Add an explicit per-fill replacement option so a confirmed English or Chinese profile can replace values already present on the page.
+- Keep existing page values protected by default, limit replacement to checked preview items, and never persist the replacement choice.
+- Report replacements separately from protected skips and add regressions proving unselected controls remain untouched.
+
 ## [0.2.5] - 2026-09-01
 
 - Fix the complete scan-to-fill path for custom phone rows so the full number targets only the main input and never the calling-code component.

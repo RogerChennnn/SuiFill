@@ -12,7 +12,7 @@ The project has completed **M8: technical release candidate**. All nine implemen
 - No telemetry or analytics.
 - No access to browsing history or cookies.
 - No automatic form submission.
-- No automatic overwrite of fields that already contain a value.
+- Existing field values are protected by default; replacement requires an explicit per-fill confirmation and applies only to checked fields.
 - Only the final user-checked instructions, never the whole vault, reach the page.
 - Exported backups remain encrypted and cannot be restored without their original master password.
 - Users can permanently delete the local encrypted vault.

@@ -17,7 +17,7 @@
 
 ## Browser smoke test
 
-The v0.1.x flow was completed on 2026-08-27 at a 430 × 900 side-panel viewport with an isolated local storage/page mock and fictional `.test` data. The v0.2.5 dual-workspace UI and complete composite-phone scan-to-fill flow still require a fresh manual Chrome and Edge smoke test.
+The v0.1.x flow was completed on 2026-08-27 at a 430 × 900 side-panel viewport with an isolated local storage/page mock and fictional `.test` data. The v0.2.6 dual-workspace UI, complete composite-phone scan-to-fill flow, and explicit replacement mode still require a fresh manual Chrome and Edge smoke test.
 
 - [x] First-run UI renders with labeled password controls.
 - [x] Create encrypted vault.
@@ -32,8 +32,8 @@ The v0.1.x flow was completed on 2026-08-27 at a 430 × 900 side-panel viewport 
 
 ## Candidate artifact
 
-- File: `.output/suifill-0.2.5-chrome.zip`
-- SHA-256: `E875BD839CF3FA1922E79E8A188BF6CD7A4CE136BA8244999E4EE37172A5488B`
+- File: `.output/suifill-0.2.6-chrome.zip`
+- SHA-256: `9648F1123F9F352BEF8A38802ECE07374BBD37D25B44B312D7EE19CA16C113AA`
 - Contents: Manifest V3 extension bundle only; no test harness, source map, backup, or personal-data fixture.
 
 ## Human gates before public distribution

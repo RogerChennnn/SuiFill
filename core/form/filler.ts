@@ -9,10 +9,11 @@ export function applyFillInstructions(
   expectedHostname: string,
 ): FillExecutionResult {
   if (location.hostname !== expectedHostname) {
-    return { filled: 0, skippedOccupied: 0, failed: 0, pageMismatch: true };
+    return { filled: 0, overwritten: 0, skippedOccupied: 0, failed: 0, pageMismatch: true };
   }
 
   let filled = 0;
+  let overwritten = 0;
   let skippedOccupied = 0;
   let failed = 0;
 
@@ -74,7 +75,8 @@ export function applyFillInstructions(
       continue;
     }
 
-    if (element.value.trim()) {
+    const hadExistingValue = Boolean(element.value.trim());
+    if (hadExistingValue && !instruction.overwriteExisting) {
       skippedOccupied += 1;
       continue;
     }
@@ -107,7 +109,8 @@ export function applyFillInstructions(
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
     filled += 1;
+    if (hadExistingValue) overwritten += 1;
   }
 
-  return { filled, skippedOccupied, failed, pageMismatch: false };
+  return { filled, overwritten, skippedOccupied, failed, pageMismatch: false };
 }

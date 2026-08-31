@@ -30,3 +30,5 @@ The v0.2.3 regression separates visible Chinese labels from their controls into 
 The v0.2.4 regressions model a ByteDance-style bordered phone row in two forms: a narrow input-based calling-code prefix plus a wide number input, and a non-form custom prefix plus a number input. They require the main field to resolve as phone, an eligible prefix to resolve as phone country code, and agreeing code/visual signals to raise confidence without value reads.
 
 The v0.2.5 regressions run the ByteDance-style row through scanning, classification, preset resolution, and actual DOM filling. They require hidden component inputs and validation text not to break grouping, keep the custom `+86` prefix unchanged, write the stored phone only to the main input, ignore incompatible stale site rules, and re-resolve a later control after an earlier event replaces its DOM node.
+
+The v0.2.6 regressions preserve non-empty controls by default, allow a user-confirmed fill instruction to replace an existing value, and prove that replacement cannot touch an unselected control. The execution result separately reports replacements and protected skips.

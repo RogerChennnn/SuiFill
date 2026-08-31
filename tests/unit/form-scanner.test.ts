@@ -231,7 +231,13 @@ describe('page field scanner', () => {
 
     expect(plan.map((item) => item.semantic)).toEqual(['phone']);
     expect(plan[0]!.targetLabel).toBe('手机号码');
-    expect(result).toEqual({ filled: 1, skippedOccupied: 0, failed: 0, pageMismatch: false });
+    expect(result).toEqual({
+      filled: 1,
+      overwritten: 0,
+      skippedOccupied: 0,
+      failed: 0,
+      pageMismatch: false,
+    });
     expect((controls[0] as HTMLInputElement).value).toBe('+86');
     expect((controls[2] as HTMLInputElement).value).toBe('1110000');
   });

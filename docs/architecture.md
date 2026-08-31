@@ -33,8 +33,8 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 
 - A selected preset is resolved to a per-field plan in side-panel memory. The complete vault and preset are never sent to the page.
 - High-confidence ordinary matches can be suggested; low-confidence, default-disabled, and level-three custom values require individual selection.
-- The final injected payload contains only selected value/locator pairs and is bound to the scanned tab, document ID when available, and hostname.
-- The filler refuses to overwrite non-empty controls, refuses values longer than a control's declared maximum, and reports counts without returning page values.
+- The final injected payload contains only selected value/locator pairs, a per-action replacement boolean, and is bound to the scanned tab, document ID when available, and hostname.
+- The filler protects non-empty controls by default. An explicit preview option can replace only selected controls for that single fill action; the option is not persisted. The filler refuses values longer than a control's declared maximum and reports fill, replacement, protected-skip, and failure counts without returning page values.
 - The filler dispatches normal input/change events but contains no submit, requestSubmit, button-click, navigation, or purchase action.
 - Controls are queried again immediately before each instruction because a framework may replace later input nodes after an earlier input/change event.
 
