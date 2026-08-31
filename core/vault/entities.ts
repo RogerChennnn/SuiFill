@@ -6,7 +6,7 @@ import type {
   IdentityProfile,
   Preset,
   SiteRule,
-  VaultData,
+  WorkspaceData,
 } from './schema';
 
 export type EditableEntity = IdentityProfile | ContactProfile | AddressProfile | CustomField;
@@ -51,7 +51,11 @@ export function createPreset(input: EntityInput<Preset>, options?: EntityFactory
   return withMetadata(normalizePresetInput(input), options);
 }
 
-export function savePreset(vault: VaultData, preset: Preset, now = new Date()): VaultData {
+export function savePreset(
+  workspace: WorkspaceData,
+  preset: Preset,
+  now = new Date(),
+): WorkspaceData {
   const timestamp = now.toISOString();
   const normalized: Preset = {
     ...preset,
@@ -59,57 +63,61 @@ export function savePreset(vault: VaultData, preset: Preset, now = new Date()): 
     updatedAt: timestamp,
     customFieldIds: [...new Set(preset.customFieldIds.filter(Boolean))],
   };
-  const presets = vault.presets.some((item) => item.id === preset.id)
-    ? vault.presets.map((item) => (item.id === preset.id ? normalized : item))
-    : [...vault.presets, normalized];
+  const presets = workspace.presets.some((item) => item.id === preset.id)
+    ? workspace.presets.map((item) => (item.id === preset.id ? normalized : item))
+    : [...workspace.presets, normalized];
 
-  return { ...vault, presets, updatedAt: timestamp };
+  return { ...workspace, presets, updatedAt: timestamp };
 }
 
-export function deletePreset(vault: VaultData, id: string, now = new Date()): VaultData {
+export function deletePreset(
+  workspace: WorkspaceData,
+  id: string,
+  now = new Date(),
+): WorkspaceData {
   return {
-    ...vault,
-    presets: vault.presets.filter((preset) => preset.id !== id),
+    ...workspace,
+    presets: workspace.presets.filter((preset) => preset.id !== id),
     updatedAt: now.toISOString(),
   };
 }
 
 export function saveVaultEntity(
-  vault: VaultData,
+  workspace: WorkspaceData,
   collection: EntityCollection,
   entity: EditableEntity,
   now = new Date(),
-): VaultData {
+): WorkspaceData {
   const timestamp = now.toISOString();
   const normalized = normalizeEntity({ ...entity, updatedAt: timestamp });
-  const existing = vault[collection] as EditableEntity[];
+  const existing = workspace[collection] as EditableEntity[];
   const nextItems = existing.some((item) => item.id === entity.id)
     ? existing.map((item) => (item.id === entity.id ? normalized : item))
     : [...existing, normalized];
 
   return {
-    ...vault,
+    ...workspace,
     [collection]: nextItems,
     updatedAt: timestamp,
-  } as VaultData;
+  } as WorkspaceData;
 }
 
 export function deleteVaultEntity(
-  vault: VaultData,
+  workspace: WorkspaceData,
   collection: EntityCollection,
   id: string,
   now = new Date(),
-): VaultData {
-  const existing = vault[collection] as EditableEntity[];
-  const presets = unlinkDeletedEntity(vault.presets, collection, id, now);
-  const siteRules = unlinkDeletedCustomField(vault.siteRules, collection, id, now);
+): WorkspaceData {
+  const existing = workspace[collection] as EditableEntity[];
+  const presets = unlinkDeletedEntity(workspace.presets, collection, id, now);
+  const siteRules = unlinkDeletedCustomField(workspace.siteRules, collection, id, now);
   return {
-    ...vault,
+    ...workspace,
     [collection]: existing.filter((item) => item.id !== id),
     presets,
     siteRules,
     updatedAt: now.toISOString(),
-  } as VaultData;
+  } as WorkspaceData;
 }
 
 function unlinkDeletedCustomField(

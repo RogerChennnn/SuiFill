@@ -10,9 +10,9 @@ The responsible-disclosure contact will be added before public release. Until th
 
 - PBKDF2-HMAC-SHA-256 with 600,000 iterations and a 16-byte random salt.
 - AES-GCM with a 256-bit non-extractable key and a fresh 12-byte random IV per encryption.
-- No password, key, or plaintext persistence.
+- No password or plaintext persistence. A raw unlock key may exist only in browser session storage for one fixed hour after a successful unlock.
 - Uniform unlock failure for incorrect passwords, damaged ciphertext, and invalid decrypted data.
-- Fifteen-minute in-panel inactivity lock.
+- Fixed one-hour unlock window across side-panel closes; expiry and manual lock clear the session key.
 
 ## Page data boundary
 

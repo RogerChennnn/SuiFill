@@ -14,7 +14,7 @@ import {
   savePreset,
   saveVaultEntity,
 } from '../../core/vault/entities';
-import { createEmptyVault, isVaultData } from '../../core/vault/schema';
+import { createEmptyVault, isVaultData, replaceWorkspace } from '../../core/vault/schema';
 
 const TEST_TIME = new Date('2026-04-01T00:00:00.000Z');
 
@@ -47,14 +47,18 @@ describe('encrypted per-site rules', () => {
       [createSiteMapping(fieldSignal(), { kind: 'semantic', semantic: 'postalCode' })],
       { id: 'site-rule-test', now: TEST_TIME },
     );
-    const vault = saveSiteRule(createEmptyVault(TEST_TIME), rule, TEST_TIME);
+    const workspace = saveSiteRule(
+      createEmptyVault(TEST_TIME).workspaces['zh-CN'],
+      rule,
+      TEST_TIME,
+    );
 
-    const applied = applySiteRule([classifiedField()], vault, 'example.test');
+    const applied = applySiteRule([classifiedField()], workspace, 'example.test');
 
     expect(applied[0]!.semantic).toBe('postalCode');
     expect(applied[0]!.confidence).toBe(1);
     expect(applied[0]!.evidence).toContain('使用本网站的加密自定义规则');
-    expect(applySiteRule([classifiedField()], vault, 'another.example.test')[0]!.semantic).toBe(
+    expect(applySiteRule([classifiedField()], workspace, 'another.example.test')[0]!.semantic).toBe(
       'unknown',
     );
   });
@@ -70,8 +74,8 @@ describe('encrypted per-site rules', () => {
       },
       { id: 'site-custom-test', now: TEST_TIME },
     );
-    let vault = saveVaultEntity(
-      createEmptyVault(TEST_TIME),
+    let workspace = saveVaultEntity(
+      createEmptyVault(TEST_TIME).workspaces['zh-CN'],
       'customFields',
       customField,
       TEST_TIME,
@@ -87,9 +91,9 @@ describe('encrypted per-site rules', () => {
       },
       { id: 'site-preset-test', now: TEST_TIME },
     );
-    vault = savePreset(vault, preset, TEST_TIME);
-    vault = saveSiteRule(
-      vault,
+    workspace = savePreset(workspace, preset, TEST_TIME);
+    workspace = saveSiteRule(
+      workspace,
       createSiteRule(
         'example.test',
         [createSiteMapping(fieldSignal(), { kind: 'custom', customFieldId: customField.id })],
@@ -98,8 +102,8 @@ describe('encrypted per-site rules', () => {
       TEST_TIME,
     );
 
-    const classified = applySiteRule([classifiedField()], vault, 'example.test');
-    const plan = buildFillPlan(classified, vault, preset);
+    const classified = applySiteRule([classifiedField()], workspace, 'example.test');
+    const plan = buildFillPlan(classified, workspace, preset);
 
     expect(plan[0]!.value).toBe(customField.value);
     expect(plan[0]!.selectedByDefault).toBe(false);
@@ -116,14 +120,15 @@ describe('encrypted per-site rules', () => {
       },
       { id: 'delete-site-custom', now: TEST_TIME },
     );
-    let vault = saveVaultEntity(
-      createEmptyVault(TEST_TIME),
+    const emptyVault = createEmptyVault(TEST_TIME);
+    let workspace = saveVaultEntity(
+      emptyVault.workspaces['zh-CN'],
       'customFields',
       customField,
       TEST_TIME,
     );
-    vault = saveSiteRule(
-      vault,
+    workspace = saveSiteRule(
+      workspace,
       createSiteRule(
         'delete.example.test',
         [createSiteMapping(fieldSignal(), { kind: 'custom', customFieldId: customField.id })],
@@ -132,15 +137,17 @@ describe('encrypted per-site rules', () => {
       TEST_TIME,
     );
 
-    const deleted = deleteVaultEntity(vault, 'customFields', customField.id, TEST_TIME);
+    const deleted = deleteVaultEntity(workspace, 'customFields', customField.id, TEST_TIME);
+    const vault = replaceWorkspace(emptyVault, 'zh-CN', deleted, TEST_TIME);
 
     expect(deleted.siteRules).toEqual([]);
-    expect(isVaultData(deleted)).toBe(true);
+    expect(isVaultData(vault)).toBe(true);
   });
 
   it('rejects dangling custom-field references in site rules', () => {
-    const vault = saveSiteRule(
-      createEmptyVault(TEST_TIME),
+    const emptyVault = createEmptyVault(TEST_TIME);
+    const workspace = saveSiteRule(
+      emptyVault.workspaces['zh-CN'],
       createSiteRule(
         'invalid.example.test',
         [createSiteMapping(fieldSignal(), { kind: 'custom', customFieldId: 'missing-custom' })],
@@ -149,6 +156,6 @@ describe('encrypted per-site rules', () => {
       TEST_TIME,
     );
 
-    expect(isVaultData(vault)).toBe(false);
+    expect(isVaultData(replaceWorkspace(emptyVault, 'zh-CN', workspace, TEST_TIME))).toBe(false);
   });
 });

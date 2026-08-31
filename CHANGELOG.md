@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0] - 2026-08-31
+
+- Add fully separate Chinese and English data workspaces, including independent profiles, presets, and site rules.
+- Add searchable controlled choices for title, gender, pronouns, nationality, and country/region, with migration from v0.1.x data.
+- Add region, Telegram, Instagram, WhatsApp, and three Additional Link fields; remove preferred language.
+- Accept any non-empty master password and remember an unlocked vault for one fixed hour in browser session storage.
+- Expand bilingual form-field recognition aliases and refresh the side-panel interface around the puzzle logo.
+
 ## [0.1.1] - 2026-08-28
 
 - Fix the Chrome side-panel authorization flow by handling the toolbar action explicitly, and explain that opening SuiFill from the side-panel picker does not grant temporary page access.

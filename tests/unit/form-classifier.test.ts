@@ -32,6 +32,17 @@ describe('form semantic classifier', () => {
     ['address level', signal({ autocomplete: 'billing address-level2' }), 'city'],
     ['telephone country code', signal({ autocomplete: 'tel-country-code' }), 'phoneCountryCode'],
     ['birth date type', signal({ inputType: 'date' }), 'birthDate'],
+    ['expanded Chinese email label', signal({ labels: ['电子邮箱地址'] }), 'email'],
+    ['expanded English email label', signal({ labels: ['Electronic mail address'] }), 'email'],
+    ['nationality', signal({ labels: ['Country of citizenship'] }), 'nationality'],
+    ['region of residence', signal({ labels: ['Current country of residence'] }), 'region'],
+    ['pronouns', signal({ labels: ['Preferred pronouns'] }), 'pronouns'],
+    ['title', signal({ labels: ['Salutation'] }), 'title'],
+    ['WeChat', signal({ labels: ['微信账号'] }), 'wechat'],
+    ['Telegram', signal({ labels: ['Telegram username'] }), 'telegram'],
+    ['Instagram', signal({ labels: ['Instagram handle'] }), 'instagram'],
+    ['WhatsApp', signal({ labels: ['WhatsApp number'] }), 'whatsapp'],
+    ['additional link', signal({ labels: ['Additional link'] }), 'website'],
   ])('recognizes %s', (_name, fieldSignal, expected) => {
     expect(classifyField(fieldSignal).semantic).toBe(expected);
   });

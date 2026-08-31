@@ -27,7 +27,15 @@ describe('encrypted vault backup and recovery', () => {
       sensitivity: 2,
       allowDefaultFill: false,
     });
-    const populated = saveVaultEntity(created.vault, 'customFields', customField);
+    const workspace = saveVaultEntity(
+      created.vault.workspaces['zh-CN'],
+      'customFields',
+      customField,
+    );
+    const populated = {
+      ...created.vault,
+      workspaces: { ...created.vault.workspaces, 'zh-CN': workspace },
+    };
     const envelope = await resealVault(populated, created.key, created.envelope);
 
     const serialized = serializeVaultBackup(
@@ -38,7 +46,7 @@ describe('encrypted vault backup and recovery', () => {
     expect(serialized).not.toContain(customField.value);
     const parsed = parseVaultBackup(serialized);
     const restored = await unlockEncryptedVault(OLD_PASSWORD, parsed.vault);
-    expect(restored.vault.customFields[0]!.value).toBe(customField.value);
+    expect(restored.vault.workspaces['zh-CN'].customFields[0]!.value).toBe(customField.value);
   });
 
   it('rejects malformed or unsupported backup wrappers', () => {

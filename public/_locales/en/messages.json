@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "SuiFill"
+  },
+  "extensionDescription": {
+    "message": "Manage separate local profiles and safely fill web forms after review."
+  },
+  "actionTitle": {
+    "message": "Open SuiFill"
+  }
+}

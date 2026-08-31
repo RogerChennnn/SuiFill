@@ -3,7 +3,7 @@ import type {
   SiteFieldSignature,
   SiteRule,
   SiteRuleSource,
-  VaultData,
+  WorkspaceData,
 } from '../vault/schema';
 import type { ClassifiedField, RawFieldSignal } from './types';
 
@@ -31,7 +31,11 @@ export function createSiteRule(
   };
 }
 
-export function saveSiteRule(vault: VaultData, rule: SiteRule, now = new Date()): VaultData {
+export function saveSiteRule(
+  workspace: WorkspaceData,
+  rule: SiteRule,
+  now = new Date(),
+): WorkspaceData {
   const timestamp = now.toISOString();
   const normalized: SiteRule = {
     ...rule,
@@ -40,34 +44,38 @@ export function saveSiteRule(vault: VaultData, rule: SiteRule, now = new Date())
     mappings: deduplicateMappings(rule.mappings),
     updatedAt: timestamp,
   };
-  const siteRules = vault.siteRules.some(
+  const siteRules = workspace.siteRules.some(
     (item) => item.id === normalized.id || item.hostname === normalized.hostname,
   )
-    ? vault.siteRules.map((item) =>
+    ? workspace.siteRules.map((item) =>
         item.id === normalized.id || item.hostname === normalized.hostname
           ? { ...normalized, id: item.id, createdAt: item.createdAt }
           : item,
       )
-    : [...vault.siteRules, normalized];
+    : [...workspace.siteRules, normalized];
 
-  return { ...vault, siteRules, updatedAt: timestamp };
+  return { ...workspace, siteRules, updatedAt: timestamp };
 }
 
-export function deleteSiteRule(vault: VaultData, hostname: string, now = new Date()): VaultData {
+export function deleteSiteRule(
+  workspace: WorkspaceData,
+  hostname: string,
+  now = new Date(),
+): WorkspaceData {
   const normalizedHostname = normalizeHostname(hostname);
   return {
-    ...vault,
-    siteRules: vault.siteRules.filter((rule) => rule.hostname !== normalizedHostname),
+    ...workspace,
+    siteRules: workspace.siteRules.filter((rule) => rule.hostname !== normalizedHostname),
     updatedAt: now.toISOString(),
   };
 }
 
 export function applySiteRule(
   fields: ClassifiedField[],
-  vault: VaultData,
+  workspace: WorkspaceData,
   hostname: string,
 ): ClassifiedField[] {
-  const rule = getSiteRule(vault, hostname);
+  const rule = getSiteRule(workspace, hostname);
   if (!rule) return fields;
 
   return fields.map((field) => {
@@ -93,9 +101,9 @@ export function applySiteRule(
   });
 }
 
-export function getSiteRule(vault: VaultData, hostname: string): SiteRule | undefined {
+export function getSiteRule(workspace: WorkspaceData, hostname: string): SiteRule | undefined {
   const normalizedHostname = normalizeHostname(hostname);
-  return vault.siteRules.find((rule) => rule.hostname === normalizedHostname);
+  return workspace.siteRules.find((rule) => rule.hostname === normalizedHostname);
 }
 
 export function findSiteMapping(

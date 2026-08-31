@@ -4,13 +4,14 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: {
-    name: 'SuiFill 随填',
+    name: '__MSG_extensionName__',
     short_name: 'SuiFill',
-    description: '在本地管理多套个人信息，确认后安全填入当前网页。',
+    description: '__MSG_extensionDescription__',
+    default_locale: 'en',
     minimum_chrome_version: '114',
     permissions: ['activeTab', 'scripting', 'storage', 'sidePanel'],
     action: {
-      default_title: '打开 SuiFill 随填',
+      default_title: '__MSG_actionTitle__',
     },
   },
 });

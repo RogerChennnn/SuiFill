@@ -1,4 +1,4 @@
-export const PROJECT_NAME = 'SuiFill 随填';
+export const PROJECT_NAME = 'SuiFill';
 
 export const MILESTONES = [
   '工程初始化',

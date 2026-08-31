@@ -1,27 +1,22 @@
 :root {
   font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  color: #14231d;
-  background: #f4f6f2;
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    system-ui, sans-serif;
+  color: #17231d;
+  background: #f5f7f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --ink: #14231d;
-  --muted: #65736c;
-  --line: #dbe2dd;
-  --surface-soft: #edf4ef;
-  --green: #166534;
-  --green-deep: #104b29;
-  --green-pale: #dff3e5;
+  --ink: #17231d;
+  --muted: #66726c;
+  --line: #dfe5e1;
+  --surface-soft: #f1f5f2;
+  --green: #14733d;
+  --green-deep: #0e532c;
+  --green-pale: #e4f4e9;
   --amber: #a65f00;
   --amber-pale: #fff4da;
-  --shadow: 0 16px 40px rgba(29, 55, 42, 0.08);
+  --shadow: 0 1px 2px rgba(20, 44, 31, 0.04);
 }
 
 * {
@@ -32,8 +27,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(201, 230, 211, 0.55), transparent 35%), #f4f6f2;
+  background: #f5f7f5;
 }
 
 button,
@@ -63,29 +57,52 @@ svg {
   width: min(100%, 460px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 24px 18px 18px;
+  padding: 20px 16px 18px;
 }
 
 .brand-header {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 22px;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 2px 2px 0;
+}
+
+.brand-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-identity > div:last-child {
+  min-width: 0;
+}
+
+.brand-identity p {
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .brand-mark {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(22, 101, 52, 0.22);
-  border-radius: 14px;
-  color: #fff;
-  background: linear-gradient(145deg, #1f7a43, #104b29);
-  box-shadow: 0 8px 20px rgba(16, 75, 41, 0.18);
-  font-size: 19px;
-  font-weight: 760;
+}
+
+.brand-mark img {
+  display: block;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
 h1,
@@ -95,9 +112,8 @@ p {
 }
 
 h1 {
-  margin-top: 2px;
   color: var(--ink);
-  font-size: 19px;
+  font-size: 20px;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -109,31 +125,65 @@ h2 {
   letter-spacing: -0.015em;
 }
 
-.eyebrow {
+.eyebrow,
+.section-label {
   color: var(--muted);
-  font-size: 10px;
-  font-weight: 760;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0;
 }
 
 .version-badge {
-  align-self: start;
-  padding: 5px 8px;
-  border: 1px solid var(--line);
+  padding: 4px 7px;
+  border: 0;
   border-radius: 999px;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.7);
-  font-size: 10px;
+  background: #e9eeeb;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.language-switch {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #d7e0da;
+  border-radius: 10px;
+  background: #e9eeeb;
+}
+
+.language-switch button {
+  min-width: 39px;
+  min-height: 30px;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 7px;
+  color: #5d6b63;
+  background: transparent;
+  font-size: 11px;
   font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.language-switch button.active {
+  color: var(--green-deep);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(24, 52, 36, 0.12);
 }
 
 .hero-card,
 .manager-card,
 .privacy-card,
 .progress-card {
-  border: 1px solid rgba(207, 218, 211, 0.9);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
   box-shadow: var(--shadow);
 }
 
@@ -146,24 +196,12 @@ h2 {
   position: relative;
 }
 
-.hero-card::after {
-  content: '';
-  position: absolute;
-  top: -42px;
-  right: -38px;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: rgba(223, 243, 229, 0.6);
-  pointer-events: none;
-}
-
 .hero-icon {
   display: grid;
   width: 42px;
   height: 42px;
   place-items: center;
-  border-radius: 13px;
+  border-radius: 11px;
   color: var(--green);
   background: var(--green-pale);
 }
@@ -381,12 +419,12 @@ h2 {
 .privacy-card,
 .progress-card {
   margin-top: 14px;
-  padding: 17px;
+  padding: 16px;
 }
 
 .manager-card {
   margin-top: 14px;
-  padding: 17px;
+  padding: 16px;
 }
 
 .manager-heading,
@@ -443,7 +481,7 @@ h2 {
 
 .category-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 5px;
   margin-top: 15px;
   padding: 4px;
@@ -457,13 +495,16 @@ h2 {
   min-height: 34px;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   border: 0;
   border-radius: 9px;
   color: #66756d;
   background: transparent;
-  font-size: 11px;
+  overflow: hidden;
+  font-size: 10px;
   font-weight: 700;
+  text-overflow: clip;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -486,6 +527,7 @@ h2 {
   color: inherit;
   background: rgba(22, 101, 52, 0.08);
   font-size: 9px;
+  white-space: nowrap;
 }
 
 .collection-toolbar {
@@ -1289,6 +1331,25 @@ h2 {
   color: var(--green);
 }
 
+.privacy-details {
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.privacy-details summary {
+  color: var(--green-deep);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.privacy-details p {
+  margin-top: 9px;
+}
+
 .progress-heading {
   display: flex;
   align-items: flex-end;
@@ -1348,6 +1409,33 @@ footer {
   padding: 17px 4px 0;
   color: #718078;
   font-size: 10px;
+}
+
+@media (max-width: 360px) {
+  .app-shell {
+    padding-inline: 12px;
+  }
+
+  .brand-identity p,
+  .version-badge {
+    display: none;
+  }
+
+  .brand-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .category-tabs button {
+    min-height: 36px;
+    padding-inline: 2px;
+    font-size: 9px;
+  }
+
+  .category-tabs button span {
+    min-width: 15px;
+    height: 15px;
+    font-size: 8px;
+  }
 }
 
 .privacy-dot {

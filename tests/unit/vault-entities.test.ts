@@ -22,13 +22,19 @@ describe('vault entity mutations', () => {
         alternatePhone: '',
         countryCode: '+00',
         wechat: '',
-        website: 'https://example.test',
+        telegram: '',
+        instagram: '',
+        whatsapp: '',
+        additionalLink1: 'https://example.test',
+        additionalLink2: '',
+        additionalLink3: '',
         purpose: '测试夹具',
       },
       { id: 'contact-test', now: FIRST_TIME },
     );
 
-    const added = saveVaultEntity(emptyVault, 'contacts', contact, FIRST_TIME);
+    const emptyWorkspace = emptyVault.workspaces['zh-CN'];
+    const added = saveVaultEntity(emptyWorkspace, 'contacts', contact, FIRST_TIME);
     const updated = saveVaultEntity(
       added,
       'contacts',
@@ -37,7 +43,7 @@ describe('vault entity mutations', () => {
     );
     const deleted = deleteVaultEntity(updated, 'contacts', contact.id, SECOND_TIME);
 
-    expect(emptyVault.contacts).toHaveLength(0);
+    expect(emptyWorkspace.contacts).toHaveLength(0);
     expect(added.contacts[0]!.label).toBe('示例联系资料');
     expect(updated.contacts[0]!.email).toBe('updated@example.test');
     expect(updated.contacts[0]!.createdAt).toBe(contact.createdAt);
@@ -60,10 +66,14 @@ describe('vault entity mutations', () => {
     expect(customField.aliases).toEqual(['member id', '会员号']);
     expect(customField.allowDefaultFill).toBe(false);
 
-    const vault = saveVaultEntity(createEmptyVault(FIRST_TIME), 'customFields', {
-      ...customField,
-      allowDefaultFill: true,
-    });
-    expect(vault.customFields[0]!.allowDefaultFill).toBe(false);
+    const workspace = saveVaultEntity(
+      createEmptyVault(FIRST_TIME).workspaces['zh-CN'],
+      'customFields',
+      {
+        ...customField,
+        allowDefaultFill: true,
+      },
+    );
+    expect(workspace.customFields[0]!.allowDefaultFill).toBe(false);
   });
 });

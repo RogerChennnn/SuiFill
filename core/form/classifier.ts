@@ -11,13 +11,44 @@ const RULES: Rule[] = [
   {
     semantic: 'email',
     autocomplete: ['email'],
-    aliases: ['email', 'e mail', 'email address', '电子邮箱', '邮箱', '邮件地址'],
+    aliases: [
+      'email',
+      'e mail',
+      'email address',
+      'e mail address',
+      'electronic mail',
+      'electronic mail address',
+      'contact email',
+      'primary email',
+      'work email',
+      'personal email',
+      '邮箱',
+      '邮箱地址',
+      '电子邮箱',
+      '电子邮箱地址',
+      '电子邮件',
+      '电子邮件地址',
+      '邮件',
+      '邮件地址',
+      '联系邮箱',
+      '常用邮箱',
+    ],
     inputTypes: ['email'],
   },
   {
     semantic: 'phoneCountryCode',
     autocomplete: ['tel-country-code'],
-    aliases: ['country code', 'calling code', 'dial code', '电话区号', '国际区号'],
+    aliases: [
+      'country code',
+      'calling code',
+      'dial code',
+      'phone country code',
+      'telephone country code',
+      '电话区号',
+      '国际区号',
+      '手机区号',
+      '国家代码',
+    ],
   },
   {
     semantic: 'phone',
@@ -28,17 +59,31 @@ const RULES: Rule[] = [
       'mobile',
       'mobile number',
       'telephone',
+      'telephone number',
+      'contact number',
+      'cell phone',
+      'cellphone',
       '手机号',
       '手机号码',
       '电话',
+      '电话号码',
       '联系电话',
+      '联系电话号码',
     ],
     inputTypes: ['tel'],
   },
   {
     semantic: 'firstName',
     autocomplete: ['given-name'],
-    aliases: ['first name', 'firstname', 'given name', '名'],
+    aliases: [
+      'first name',
+      'firstname',
+      'given name',
+      'forename',
+      'legal first name',
+      '名',
+      '名字',
+    ],
   },
   {
     semantic: 'middleName',
@@ -48,7 +93,7 @@ const RULES: Rule[] = [
   {
     semantic: 'lastName',
     autocomplete: ['family-name'],
-    aliases: ['last name', 'lastname', 'family name', 'surname', '姓'],
+    aliases: ['last name', 'lastname', 'family name', 'surname', 'legal last name', '姓', '姓氏'],
   },
   {
     semantic: 'fullName',
@@ -58,7 +103,11 @@ const RULES: Rule[] = [
       'fullname',
       'your name',
       'legal name',
+      'name as shown on id',
+      'applicant name',
       '姓名',
+      '您的姓名',
+      '申请人姓名',
       '真实姓名',
       '收件人',
       '联系人',
@@ -73,10 +122,14 @@ const RULES: Rule[] = [
       'organization',
       'organisation',
       'employer',
+      'employer name',
+      'business name',
       '公司',
       '公司名称',
       '单位',
       '学校',
+      '雇主',
+      '工作单位',
     ],
   },
   {
@@ -88,7 +141,12 @@ const RULES: Rule[] = [
       'address 2',
       'apartment',
       'apt suite',
+      'unit',
+      'suite',
+      'building floor room',
       '地址第二行',
+      '地址行2',
+      '地址行 2',
       '房间号',
       '楼栋',
     ],
@@ -101,51 +159,186 @@ const RULES: Rule[] = [
       'address line 1',
       'address1',
       'address 1',
+      'mailing address',
+      'residential address',
+      'home address',
+      'current address',
       '详细地址',
       '街道地址',
+      '地址第一行',
+      '地址行1',
+      '地址行 1',
+      '居住地址',
+      '通讯地址',
+      '现居地址',
       '地址',
     ],
   },
   {
     semantic: 'postalCode',
     autocomplete: ['postal-code'],
-    aliases: ['postal code', 'postcode', 'post code', 'zip', 'zip code', '邮编', '邮政编码'],
+    aliases: [
+      'postal code',
+      'postcode',
+      'post code',
+      'zip',
+      'zip code',
+      'zipcode',
+      'postal zip code',
+      '邮编',
+      '邮政编码',
+      '邮政编号',
+    ],
   },
   {
     semantic: 'province',
     autocomplete: ['address-level1'],
-    aliases: ['state', 'province', 'state province', '省', '省份', '州'],
+    aliases: [
+      'state',
+      'province',
+      'state province',
+      'state or province',
+      'region state province',
+      '省',
+      '省份',
+      '省州',
+      '州',
+    ],
   },
   {
     semantic: 'city',
     autocomplete: ['address-level2'],
-    aliases: ['city', 'town', '城市', '市'],
+    aliases: ['city', 'town', 'municipality', 'city town', '城市', '市', '所在城市'],
   },
   {
     semantic: 'district',
     autocomplete: ['address-level3'],
-    aliases: ['district', 'county', 'suburb', '区', '区县', '县'],
+    aliases: ['district', 'county', 'suburb', 'borough', '区', '区县', '县', '行政区'],
   },
   {
     semantic: 'country',
     autocomplete: ['country', 'country-name'],
-    aliases: ['country', 'country region', 'nation', '国家', '国家地区'],
+    aliases: [
+      'country',
+      'country region',
+      'country or region',
+      'address country',
+      '国家',
+      '国家地区',
+      '国家或地区',
+      '地址国家',
+    ],
   },
   {
     semantic: 'birthDate',
     autocomplete: ['bday'],
-    aliases: ['date of birth', 'birth date', 'birthday', 'dob', '出生日期', '生日'],
+    aliases: [
+      'date of birth',
+      'birth date',
+      'birthday',
+      'dob',
+      'birthdate',
+      '出生日期',
+      '出生年月日',
+      '生日',
+    ],
     inputTypes: ['date'],
   },
   {
     semantic: 'gender',
     autocomplete: ['sex'],
-    aliases: ['gender', 'sex', '性别'],
+    aliases: ['gender', 'sex', 'gender identity', '性别', '性别认同'],
+  },
+  {
+    semantic: 'title',
+    autocomplete: ['honorific-prefix'],
+    aliases: ['title', 'salutation', 'honorific', 'prefix', '称谓', '称呼', '头衔'],
+  },
+  {
+    semantic: 'pronouns',
+    autocomplete: [],
+    aliases: ['pronouns', 'preferred pronouns', 'personal pronouns', '代词', '人称代词'],
+  },
+  {
+    semantic: 'nationality',
+    autocomplete: [],
+    aliases: [
+      'nationality',
+      'citizenship',
+      'country of citizenship',
+      'country of nationality',
+      '国籍',
+      '公民身份',
+      '所属国籍',
+    ],
+  },
+  {
+    semantic: 'region',
+    autocomplete: [],
+    aliases: [
+      'current region',
+      'region of residence',
+      'country of residence',
+      'current country of residence',
+      'current location',
+      '地区',
+      '所在地区',
+      '现居地区',
+      '居住国家',
+      '居住国家地区',
+      '当前所在地',
+    ],
+  },
+  {
+    semantic: 'wechat',
+    autocomplete: [],
+    aliases: ['wechat', 'wechat id', 'weixin', 'weixin id', '微信', '微信号', '微信账号'],
+  },
+  {
+    semantic: 'telegram',
+    autocomplete: [],
+    aliases: ['telegram', 'telegram id', 'telegram username', 'telegram handle', '电报账号'],
+  },
+  {
+    semantic: 'instagram',
+    autocomplete: [],
+    aliases: [
+      'instagram',
+      'instagram id',
+      'instagram username',
+      'instagram handle',
+      'ig',
+      'ins',
+      '照片墙账号',
+    ],
+  },
+  {
+    semantic: 'whatsapp',
+    autocomplete: [],
+    aliases: ['whatsapp', 'whatsapp number', 'whatsapp phone', 'whats app', '瓦次普'],
   },
   {
     semantic: 'website',
     autocomplete: ['url'],
-    aliases: ['website', 'web site', 'homepage', 'portfolio url', '个人网站', '网站'],
+    aliases: [
+      'website',
+      'web site',
+      'homepage',
+      'portfolio url',
+      'portfolio link',
+      'personal url',
+      'additional link',
+      'linkedin',
+      'linkedin profile',
+      '个人网站',
+      '网站',
+      '个人主页',
+      '作品集',
+      '作品集链接',
+      '补充链接',
+      '其他链接',
+      '附加链接',
+    ],
     inputTypes: ['url'],
   },
   {
@@ -206,8 +399,10 @@ function scoreRule(
   ];
 
   for (const source of sources) {
-    if (matchesAnyAlias(source.value, rule.aliases) && source.weight > score) {
-      score = source.weight;
+    const matchQuality = getAliasMatchQuality(source.value, rule.aliases);
+    const candidateScore = source.weight * matchQuality;
+    if (matchQuality > 0 && candidateScore > score) {
+      score = candidateScore;
       evidence.push(source.evidence);
     }
   }
@@ -215,16 +410,22 @@ function scoreRule(
   return { semantic: rule.semantic, score, evidence: [...new Set(evidence)] };
 }
 
-function matchesAnyAlias(value: string, aliases: string[]): boolean {
+function getAliasMatchQuality(value: string, aliases: string[]): number {
   const normalizedValue = normalize(value);
-  if (!normalizedValue) return false;
+  if (!normalizedValue) return 0;
 
-  return aliases.some((alias) => {
+  let best = 0;
+  for (const alias of aliases) {
     const normalizedAlias = normalize(alias);
-    if (/^[\u3400-\u9fff]$/u.test(normalizedAlias)) return normalizedValue === normalizedAlias;
-    if (/[\u3400-\u9fff]/u.test(normalizedAlias)) return normalizedValue.includes(normalizedAlias);
-    return ` ${normalizedValue} `.includes(` ${normalizedAlias} `);
-  });
+    if (!normalizedAlias) continue;
+    if (normalizedValue === normalizedAlias) return 1;
+    if (/^[\u3400-\u9fff]$/u.test(normalizedAlias)) continue;
+    const matches = /[\u3400-\u9fff]/u.test(normalizedAlias)
+      ? normalizedValue.includes(normalizedAlias)
+      : ` ${normalizedValue} `.includes(` ${normalizedAlias} `);
+    if (matches) best = Math.max(best, 0.94);
+  }
+  return best;
 }
 
 function normalize(value: string): string {

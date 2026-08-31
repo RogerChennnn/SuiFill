@@ -42,12 +42,12 @@ function createPopulatedVault() {
       middleName: '',
       lastName: 'Example',
       preferredName: '',
-      englishName: '',
       birthDate: '',
+      title: '',
       gender: '',
       pronouns: '',
       nationality: '',
-      preferredLanguage: '',
+      region: '',
       occupation: '',
       organization: 'Example Organization',
     },
@@ -62,7 +62,12 @@ function createPopulatedVault() {
       alternatePhone: '',
       countryCode: '+00',
       wechat: '',
-      website: '',
+      telegram: '',
+      instagram: '',
+      whatsapp: '',
+      additionalLink1: '',
+      additionalLink2: '',
+      additionalLink3: '',
       purpose: '',
     },
     { id: 'contact-fill-test', now: TEST_TIME },
@@ -72,7 +77,7 @@ function createPopulatedVault() {
       label: '示例地址',
       recipient: 'Recipient Example',
       phone: '222-0000',
-      country: 'Exampleland',
+      countryOrRegion: 'US',
       countryCode: 'EX',
       province: 'Example Province',
       city: 'Example City',
@@ -81,8 +86,7 @@ function createPopulatedVault() {
       addressLine2: '',
       postalCode: '000000',
       company: '',
-      fullAddressZh: '',
-      fullAddressEn: '',
+      fullAddress: '',
       purpose: '',
     },
     { id: 'address-fill-test', now: TEST_TIME },
@@ -98,11 +102,11 @@ function createPopulatedVault() {
     { id: 'custom-fill-test', now: TEST_TIME },
   );
 
-  let vault = createEmptyVault(TEST_TIME);
-  vault = saveVaultEntity(vault, 'identities', identity, TEST_TIME);
-  vault = saveVaultEntity(vault, 'contacts', contact, TEST_TIME);
-  vault = saveVaultEntity(vault, 'addresses', address, TEST_TIME);
-  vault = saveVaultEntity(vault, 'customFields', secret, TEST_TIME);
+  let workspace = createEmptyVault(TEST_TIME).workspaces['zh-CN'];
+  workspace = saveVaultEntity(workspace, 'identities', identity, TEST_TIME);
+  workspace = saveVaultEntity(workspace, 'contacts', contact, TEST_TIME);
+  workspace = saveVaultEntity(workspace, 'addresses', address, TEST_TIME);
+  workspace = saveVaultEntity(workspace, 'customFields', secret, TEST_TIME);
   const preset = createPreset(
     {
       label: '示例填充场景',
@@ -114,12 +118,12 @@ function createPopulatedVault() {
     },
     { id: 'preset-fill-test', now: TEST_TIME },
   );
-  return { vault: savePreset(vault, preset, TEST_TIME), preset };
+  return { workspace: savePreset(workspace, preset, TEST_TIME), preset };
 }
 
 describe('fill plan builder', () => {
   it('resolves a preset into per-field values with address-specific overrides', () => {
-    const { vault, preset } = createPopulatedVault();
+    const { workspace, preset } = createPopulatedVault();
     const plan = buildFillPlan(
       [
         classified(0, 'fullName', 'Full name'),
@@ -127,7 +131,7 @@ describe('fill plan builder', () => {
         classified(2, 'phone', 'Phone'),
         classified(3, 'city', 'City'),
       ],
-      vault,
+      workspace,
       preset,
     );
 
@@ -141,8 +145,8 @@ describe('fill plan builder', () => {
   });
 
   it('matches preset custom fields by alias and requires separate high-sensitivity confirmation', () => {
-    const { vault, preset } = createPopulatedVault();
-    const plan = buildFillPlan([classified(0, 'unknown', 'Member ID', 0)], vault, preset);
+    const { workspace, preset } = createPopulatedVault();
+    const plan = buildFillPlan([classified(0, 'unknown', 'Member ID', 0)], workspace, preset);
 
     expect(plan).toHaveLength(1);
     expect(plan[0]!.value).toBe('fictional-secret-id');
@@ -152,10 +156,10 @@ describe('fill plan builder', () => {
   });
 
   it('does not create instructions for unmatched or empty source fields', () => {
-    const { vault, preset } = createPopulatedVault();
+    const { workspace, preset } = createPopulatedVault();
     const plan = buildFillPlan(
       [classified(0, 'middleName', 'Middle name'), classified(1, 'username', 'Username')],
-      vault,
+      workspace,
       preset,
     );
 
@@ -163,8 +167,8 @@ describe('fill plan builder', () => {
   });
 
   it('does not default-select a low-confidence match', () => {
-    const { vault, preset } = createPopulatedVault();
-    const plan = buildFillPlan([classified(0, 'email', 'Contact', 0.6)], vault, preset);
+    const { workspace, preset } = createPopulatedVault();
+    const plan = buildFillPlan([classified(0, 'email', 'Contact', 0.6)], workspace, preset);
 
     expect(plan[0]!.selectedByDefault).toBe(false);
     expect(plan[0]!.requiresExplicitConfirmation).toBe(true);

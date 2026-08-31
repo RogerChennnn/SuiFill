@@ -3,6 +3,7 @@ import {
   createEncryptedVault,
   resealVault,
   unlockEncryptedVault,
+  unlockEncryptedVaultWithSession,
   VaultUnlockError,
 } from '../../core/vault/crypto';
 import { createCustomField, saveVaultEntity } from '../../core/vault/entities';
@@ -20,9 +21,9 @@ describe('vault cryptography', () => {
       sensitivity: 2,
       allowDefaultFill: false,
     });
-    let populated = saveVaultEntity(created.vault, 'customFields', customField);
-    populated = saveSiteRule(
-      populated,
+    let workspace = saveVaultEntity(created.vault.workspaces['zh-CN'], 'customFields', customField);
+    workspace = saveSiteRule(
+      workspace,
       createSiteRule('private.example.test', [
         createSiteMapping(
           {
@@ -39,6 +40,10 @@ describe('vault cryptography', () => {
         ),
       ]),
     );
+    const populated = {
+      ...created.vault,
+      workspaces: { ...created.vault.workspaces, 'zh-CN': workspace },
+    };
     const envelope = await resealVault(populated, created.key, created.envelope);
     const serialized = JSON.stringify(envelope);
 
@@ -48,8 +53,8 @@ describe('vault cryptography', () => {
     expect(created.key.extractable).toBe(false);
 
     const unlocked = await unlockEncryptedVault(TEST_PASSWORD, envelope);
-    expect(unlocked.vault.customFields[0]!.value).toBe(customField.value);
-    expect(unlocked.vault.siteRules[0]!.hostname).toBe('private.example.test');
+    expect(unlocked.vault.workspaces['zh-CN'].customFields[0]!.value).toBe(customField.value);
+    expect(unlocked.vault.workspaces['zh-CN'].siteRules[0]!.hostname).toBe('private.example.test');
   });
 
   it('rejects an incorrect password', async () => {
@@ -77,5 +82,14 @@ describe('vault cryptography', () => {
 
     expect(resealed.cipher.iv).not.toBe(created.envelope.cipher.iv);
     expect(resealed.cipher.ciphertext).not.toBe(created.envelope.cipher.ciphertext);
+  });
+
+  it('accepts a one-character password and can resume with the in-memory session key', async () => {
+    const created = await createEncryptedVault('1');
+    const resumed = await unlockEncryptedVaultWithSession(created.sessionKey, created.envelope);
+
+    expect(resumed.vault).toEqual(created.vault);
+    expect(resumed.key.extractable).toBe(false);
+    expect(resumed.sessionKey).toBe(created.sessionKey);
   });
 });

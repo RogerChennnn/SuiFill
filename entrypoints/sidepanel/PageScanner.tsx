@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { DataLocale } from '../../core/reference/options';
 import { classifyFields } from '../../core/form/classifier';
 import { applyFillInstructions } from '../../core/form/filler';
 import { buildFillPlan } from '../../core/form/plan';
@@ -21,11 +22,12 @@ import type {
   PageScanResult,
   SemanticField,
 } from '../../core/form/types';
-import type { SiteRuleSource, VaultData } from '../../core/vault/schema';
+import type { SiteRuleSource, WorkspaceData } from '../../core/vault/schema';
 
 interface PageScannerProps {
-  vault: VaultData;
-  onSave: (vault: VaultData) => Promise<void>;
+  workspace: WorkspaceData;
+  locale: DataLocale;
+  onSave: (workspace: WorkspaceData) => Promise<void>;
 }
 
 interface ScanView {
@@ -35,34 +37,43 @@ interface ScanView {
   fields: ClassifiedField[];
 }
 
-const SEMANTIC_LABELS: Record<SemanticField, string> = {
-  fullName: '完整姓名',
-  firstName: '名',
-  middleName: '中间名',
-  lastName: '姓',
-  email: '邮箱',
-  phone: '电话',
-  phoneCountryCode: '电话区号',
-  organization: '公司 / 单位',
-  addressLine1: '详细地址第一行',
-  addressLine2: '详细地址第二行',
-  city: '城市',
-  district: '区 / 县',
-  province: '省 / 州',
-  postalCode: '邮政编码',
-  country: '国家 / 地区',
-  birthDate: '出生日期',
-  gender: '性别',
-  website: '个人网站',
-  username: '用户名',
-  unknown: '自定义字段',
+const SEMANTIC_LABELS: Record<SemanticField, { zh: string; en: string }> = {
+  fullName: { zh: '完整姓名', en: 'Full name' },
+  firstName: { zh: '名', en: 'First name' },
+  middleName: { zh: '中间名', en: 'Middle name' },
+  lastName: { zh: '姓', en: 'Last name' },
+  email: { zh: '邮箱', en: 'Email' },
+  phone: { zh: '电话', en: 'Phone' },
+  phoneCountryCode: { zh: '电话区号', en: 'Calling code' },
+  organization: { zh: '公司 / 单位', en: 'Company / Organization' },
+  addressLine1: { zh: '详细地址第一行', en: 'Address line 1' },
+  addressLine2: { zh: '详细地址第二行', en: 'Address line 2' },
+  city: { zh: '城市', en: 'City' },
+  district: { zh: '区 / 县', en: 'District / County' },
+  province: { zh: '省 / 州', en: 'State / Province' },
+  postalCode: { zh: '邮政编码', en: 'Postal code' },
+  country: { zh: '国家 / 地区', en: 'Country / Region' },
+  birthDate: { zh: '出生日期', en: 'Date of birth' },
+  title: { zh: '称谓', en: 'Title' },
+  gender: { zh: '性别', en: 'Gender' },
+  pronouns: { zh: '代词', en: 'Pronouns' },
+  nationality: { zh: '国籍', en: 'Nationality' },
+  region: { zh: '所在地区', en: 'Region' },
+  wechat: { zh: '微信号', en: 'WeChat ID' },
+  telegram: { zh: 'Telegram', en: 'Telegram' },
+  instagram: { zh: 'Instagram', en: 'Instagram' },
+  whatsapp: { zh: 'WhatsApp', en: 'WhatsApp' },
+  website: { zh: '附加链接', en: 'Additional link' },
+  username: { zh: '用户名', en: 'Username' },
+  unknown: { zh: '自定义字段', en: 'Custom field' },
 };
 
-const MAPPABLE_SEMANTICS = Object.entries(SEMANTIC_LABELS).filter(
-  ([semantic]) => semantic !== 'unknown',
-) as Array<[Exclude<SemanticField, 'unknown'>, string]>;
+const MAPPABLE_SEMANTICS = Object.keys(SEMANTIC_LABELS).filter(
+  (semantic): semantic is Exclude<SemanticField, 'unknown'> => semantic !== 'unknown',
+);
 
-export function PageScanner({ vault, onSave }: PageScannerProps) {
+export function PageScanner({ workspace, locale, onSave }: PageScannerProps) {
+  const isZh = locale === 'zh-CN';
   const [scan, setScan] = useState<ScanView | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState('');
   const [plan, setPlan] = useState<FillPlanItem[] | null>(null);
@@ -75,18 +86,18 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
   const [message, setMessage] = useState('');
 
   const classifiedFields = useMemo(
-    () => (scan ? applySiteRule(scan.fields, vault, scan.page.hostname) : []),
-    [scan, vault],
+    () => (scan ? applySiteRule(scan.fields, workspace, scan.page.hostname) : []),
+    [scan, workspace],
   );
 
   useEffect(() => {
     setPlan(null);
     setSelectedIds(new Set());
     setFillResult(null);
-    if (selectedPresetId && !vault.presets.some((preset) => preset.id === selectedPresetId)) {
+    if (selectedPresetId && !workspace.presets.some((preset) => preset.id === selectedPresetId)) {
       setSelectedPresetId('');
     }
-  }, [vault.updatedAt, vault.presets, selectedPresetId]);
+  }, [workspace.updatedAt, workspace.presets, selectedPresetId]);
 
   async function scanCurrentPage() {
     setBusy(true);
@@ -115,7 +126,9 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
     } catch {
       setScan(null);
       setMessage(
-        '尚未获得当前页面的临时权限。请先固定并点击浏览器工具栏上的 SuiFill 图标，再回到这里扫描；切换网站后需要重新点击一次。',
+        isZh
+          ? '尚未获得当前页面的临时权限。请先固定并点击浏览器工具栏上的 SuiFill 图标，再回到这里扫描；切换网站后需要重新点击一次。'
+          : 'SuiFill does not yet have temporary access to this page. Pin and select the SuiFill toolbar icon, then scan again. Repeat after switching websites.',
       );
     } finally {
       setBusy(false);
@@ -124,13 +137,13 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
 
   function generatePreview() {
     if (!scan) return;
-    const preset = vault.presets.find((item) => item.id === selectedPresetId);
+    const preset = workspace.presets.find((item) => item.id === selectedPresetId);
     if (!preset) {
-      setMessage('请先选择一个场景预设。');
+      setMessage(isZh ? '请先选择一个场景预设。' : 'Choose a scenario preset first.');
       return;
     }
 
-    const nextPlan = buildFillPlan(classifiedFields, vault, preset);
+    const nextPlan = buildFillPlan(classifiedFields, workspace, preset);
     setPlan(nextPlan);
     setSelectedIds(
       new Set(nextPlan.filter((item) => item.selectedByDefault).map((item) => item.id)),
@@ -153,7 +166,7 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
     if (!scan || !plan) return;
     const selected = plan.filter((item) => selectedIds.has(item.id));
     if (selected.length === 0) {
-      setMessage('请至少选择一个要填写的字段。');
+      setMessage(isZh ? '请至少选择一个要填写的字段。' : 'Select at least one field to fill.');
       return;
     }
 
@@ -163,7 +176,11 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
     try {
       const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true });
       if (!activeTab?.id || activeTab.id !== scan.tabId) {
-        setMessage('当前标签页已经切换。为避免填错页面，请重新扫描。');
+        setMessage(
+          isZh
+            ? '当前标签页已经切换。为避免填错页面，请重新扫描。'
+            : 'The active tab changed. Scan again to avoid filling the wrong page.',
+        );
         return;
       }
 
@@ -180,12 +197,20 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
       });
       if (!injection?.result) throw new Error('NO_FILL_RESULT');
       if (injection.result.pageMismatch) {
-        setMessage('页面地址已经变化。为避免填错页面，请重新扫描。');
+        setMessage(
+          isZh
+            ? '页面地址已经变化。为避免填错页面，请重新扫描。'
+            : 'The page address changed. Scan again to avoid filling the wrong page.',
+        );
         return;
       }
       setFillResult(injection.result);
     } catch {
-      setMessage('无法完成填充。页面可能已经变化，或不允许扩展修改。请重新扫描后重试。');
+      setMessage(
+        isZh
+          ? '无法完成填充。页面可能已经变化，或不允许扩展修改。请重新扫描后重试。'
+          : 'Fill could not be completed. The page may have changed or blocked extension edits. Scan and try again.',
+      );
     } finally {
       setBusy(false);
     }
@@ -193,7 +218,7 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
 
   function openMappingEditor() {
     if (!scan) return;
-    const rule = getSiteRule(vault, scan.page.hostname);
+    const rule = getSiteRule(workspace, scan.page.hostname);
     const choices: Record<string, string> = {};
     for (const field of scan.fields) {
       const mapping = rule ? findSiteMapping(rule, field.signal) : undefined;
@@ -209,14 +234,18 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
 
   async function saveWebsiteMappings() {
     if (!scan?.page.hostname) {
-      setMessage('当前页面没有可保存的网站域名。');
+      setMessage(
+        isZh
+          ? '当前页面没有可保存的网站域名。'
+          : 'This page does not have a hostname that can be saved.',
+      );
       return;
     }
 
     setBusy(true);
     setMessage('');
     try {
-      const existing = getSiteRule(vault, scan.page.hostname);
+      const existing = getSiteRule(workspace, scan.page.hostname);
       const preserved =
         existing?.mappings.filter(
           (mapping) =>
@@ -230,17 +259,25 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
       const mappings = [...preserved, ...current];
       const nextVault =
         mappings.length === 0
-          ? deleteSiteRule(vault, scan.page.hostname)
+          ? deleteSiteRule(workspace, scan.page.hostname)
           : saveSiteRule(
-              vault,
+              workspace,
               existing ? { ...existing, mappings } : createSiteRule(scan.page.hostname, mappings),
             );
       await onSave(nextVault);
       setMappingOpen(false);
       setPendingRuleDelete(false);
-      setMessage('本站字段规则已加密保存，并已应用到当前识别结果。');
+      setMessage(
+        isZh
+          ? '本站字段规则已加密保存，并已应用到当前识别结果。'
+          : 'The encrypted site rule was saved and applied to this scan.',
+      );
     } catch {
-      setMessage('无法保存网站规则，原有加密数据没有被替换。');
+      setMessage(
+        isZh
+          ? '无法保存网站规则，原有加密数据没有被替换。'
+          : 'The site rule could not be saved. Existing encrypted data is unchanged.',
+      );
     } finally {
       setBusy(false);
     }
@@ -250,20 +287,32 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
     if (!scan) return;
     if (!pendingRuleDelete) {
       setPendingRuleDelete(true);
-      setMessage('再次点击“确认删除本站规则”才会永久移除。');
+      setMessage(
+        isZh
+          ? '再次点击“确认删除本站规则”才会永久移除。'
+          : 'Select “Confirm delete” once more to remove this site rule.',
+      );
       return;
     }
 
     setBusy(true);
     setMessage('');
     try {
-      await onSave(deleteSiteRule(vault, scan.page.hostname));
+      await onSave(deleteSiteRule(workspace, scan.page.hostname));
       setMappingChoices({});
       setMappingOpen(false);
       setPendingRuleDelete(false);
-      setMessage('本站自定义规则已删除，当前结果恢复为自动识别。');
+      setMessage(
+        isZh
+          ? '本站自定义规则已删除，当前结果恢复为自动识别。'
+          : 'The site rule was deleted. This scan now uses automatic recognition.',
+      );
     } catch {
-      setMessage('无法删除网站规则，原有加密数据仍然保留。');
+      setMessage(
+        isZh
+          ? '无法删除网站规则，原有加密数据仍然保留。'
+          : 'The site rule could not be deleted. Existing encrypted data remains intact.',
+      );
     } finally {
       setBusy(false);
     }
@@ -279,15 +328,16 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
     <section className="manager-card scanner-card" aria-labelledby="scanner-title">
       <div className="manager-heading">
         <div>
-          <p className="eyebrow">REVIEW & FILL</p>
-          <h2 id="scanner-title">识别、预览并填写</h2>
+          <p className="section-label">{isZh ? '检查后填充' : 'Review & fill'}</p>
+          <h2 id="scanner-title">{isZh ? '识别、预览并填写' : 'Scan, preview, and fill'}</h2>
         </div>
-        <span className="gesture-badge">不会自动提交</span>
+        <span className="gesture-badge">{isZh ? '不会自动提交' : 'Never auto-submits'}</span>
       </div>
 
       <p className="scanner-intro">
-        请从浏览器工具栏点击 SuiFill
-        打开本面板，以临时授权当前页面。扫描不读取已输入内容；填充前必须逐项预览确认，且不会覆盖页面已有内容。
+        {isZh
+          ? '请从浏览器工具栏点击 SuiFill 打开本面板，以临时授权当前页面。扫描不读取已输入内容；填充前必须逐项预览确认，且不会覆盖页面已有内容。'
+          : 'Open this panel from the SuiFill toolbar icon to grant temporary access to the current page. Scanning never reads entered values; filling requires review and never overwrites existing content.'}
       </p>
 
       <button
@@ -296,7 +346,17 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
         onClick={() => void scanCurrentPage()}
         disabled={busy}
       >
-        {busy ? '正在安全处理…' : scan ? '重新扫描当前页面' : '扫描当前页面'}
+        {busy
+          ? isZh
+            ? '正在安全处理…'
+            : 'Working securely…'
+          : scan
+            ? isZh
+              ? '重新扫描当前页面'
+              : 'Scan this page again'
+            : isZh
+              ? '扫描当前页面'
+              : 'Scan this page'}
       </button>
 
       {message && (
@@ -309,32 +369,42 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
         <div className="scan-results" aria-live="polite">
           <div className="scan-summary">
             <span>
-              <strong>{scan.page.hostname || '当前页面'}</strong>
-              页面域名
+              <strong>{scan.page.hostname || (isZh ? '当前页面' : 'Current page')}</strong>
+              {isZh ? '页面域名' : 'Domain'}
             </span>
             <span>
               <strong>{recognizedCount}</strong>
-              已识别
+              {isZh ? '已识别' : 'Recognized'}
             </span>
             <span>
               <strong>{uncertainCount}</strong>
-              待确认
+              {isZh ? '待确认' : 'Review'}
             </span>
           </div>
 
           {scan.page.skippedSensitive > 0 && (
             <p className="scan-notice">
-              已自动跳过 {scan.page.skippedSensitive} 个密码字段，且未读取任何字段当前值。
+              {isZh
+                ? `已自动跳过 ${scan.page.skippedSensitive} 个密码字段，且未读取任何字段当前值。`
+                : `${scan.page.skippedSensitive} password fields were skipped. No current field values were read.`}
             </p>
           )}
           {scan.page.truncated && (
-            <p className="scan-notice">页面字段较多，本次只分析前 300 个。</p>
+            <p className="scan-notice">
+              {isZh
+                ? '页面字段较多，本次只分析前 300 个。'
+                : 'This page has many fields; only the first 300 were analyzed.'}
+            </p>
           )}
 
           {scan.fields.length === 0 ? (
             <div className="empty-state">
-              <strong>没有发现可填写字段</strong>
-              <p>密码、隐藏、按钮、只读和不可见字段会被自动排除。</p>
+              <strong>{isZh ? '没有发现可填写字段' : 'No fillable fields found'}</strong>
+              <p>
+                {isZh
+                  ? '密码、隐藏、按钮、只读和不可见字段会被自动排除。'
+                  : 'Password, hidden, button, read-only, and invisible fields are excluded.'}
+              </p>
             </div>
           ) : (
             <>
@@ -349,10 +419,10 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                       {Math.round(field.confidence * 100)}%
                     </span>
                     <span className="detected-copy">
-                      <strong>{getVisibleFieldName(field)}</strong>
+                      <strong>{getVisibleFieldName(field, locale)}</strong>
                       <small>
-                        {getFieldSemanticLabel(field, vault)}
-                        {field.evidence[0] ? ` · ${field.evidence[0]}` : ''}
+                        {getFieldSemanticLabel(field, workspace, locale)}
+                        {isZh && field.evidence[0] ? ` · ${field.evidence[0]}` : ''}
                       </small>
                     </span>
                   </div>
@@ -366,14 +436,16 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                   onClick={openMappingEditor}
                   disabled={busy || !scan.page.hostname}
                 >
-                  调整并加密保存本站字段规则
+                  {isZh ? '调整并加密保存本站字段规则' : 'Adjust encrypted rules for this site'}
                 </button>
               ) : (
                 <div className="site-mapping-editor">
                   <div className="site-mapping-heading">
                     <div>
-                      <p className="eyebrow">SITE RULE · {scan.page.hostname}</p>
-                      <h3>指定字段含义</h3>
+                      <p className="section-label">
+                        {isZh ? '网站规则' : 'Site rule'} · {scan.page.hostname}
+                      </p>
+                      <h3>{isZh ? '指定字段含义' : 'Assign field meanings'}</h3>
                     </div>
                     <button
                       type="button"
@@ -381,14 +453,18 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                       onClick={() => setMappingOpen(false)}
                       disabled={busy}
                     >
-                      取消
+                      {isZh ? '取消' : 'Cancel'}
                     </button>
                   </div>
-                  <p>只保存你明确选择的覆盖项；“使用自动识别”不会建立规则。</p>
+                  <p>
+                    {isZh
+                      ? '只保存你明确选择的覆盖项；“使用自动识别”不会建立规则。'
+                      : 'Only explicit overrides are saved. “Automatic recognition” creates no rule.'}
+                  </p>
                   <div className="site-mapping-list">
                     {scan.fields.map((field) => (
                       <label className="field" key={field.signal.locator.ordinal}>
-                        <span>{getVisibleFieldName(field)}</span>
+                        <span>{getVisibleFieldName(field, locale)}</span>
                         <select
                           value={mappingChoices[String(field.signal.locator.ordinal)] ?? ''}
                           onChange={(event) =>
@@ -398,17 +474,19 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                             }))
                           }
                         >
-                          <option value="">使用自动识别</option>
-                          <optgroup label="标准资料">
-                            {MAPPABLE_SEMANTICS.map(([semantic, label]) => (
+                          <option value="">
+                            {isZh ? '使用自动识别' : 'Automatic recognition'}
+                          </option>
+                          <optgroup label={isZh ? '标准资料' : 'Standard fields'}>
+                            {MAPPABLE_SEMANTICS.map((semantic) => (
                               <option value={`semantic:${semantic}`} key={semantic}>
-                                {label}
+                                {getSemanticLabel(semantic, locale)}
                               </option>
                             ))}
                           </optgroup>
-                          {vault.customFields.length > 0 && (
-                            <optgroup label="自定义字段">
-                              {vault.customFields.map((customField) => (
+                          {workspace.customFields.length > 0 && (
+                            <optgroup label={isZh ? '自定义字段' : 'Custom fields'}>
+                              {workspace.customFields.map((customField) => (
                                 <option value={`custom:${customField.id}`} key={customField.id}>
                                   {customField.label}
                                 </option>
@@ -420,14 +498,20 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                     ))}
                   </div>
                   <div className="site-mapping-actions">
-                    {getSiteRule(vault, scan.page.hostname) && (
+                    {getSiteRule(workspace, scan.page.hostname) && (
                       <button
                         type="button"
                         className={pendingRuleDelete ? 'danger-button confirm' : 'danger-button'}
                         onClick={() => void removeWebsiteRule()}
                         disabled={busy}
                       >
-                        {pendingRuleDelete ? '确认删除本站规则' : '删除本站规则'}
+                        {pendingRuleDelete
+                          ? isZh
+                            ? '确认删除本站规则'
+                            : 'Confirm delete'
+                          : isZh
+                            ? '删除本站规则'
+                            : 'Delete site rule'}
                       </button>
                     )}
                     <button
@@ -436,7 +520,13 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                       onClick={() => void saveWebsiteMappings()}
                       disabled={busy}
                     >
-                      {busy ? '正在加密保存…' : '加密保存本站规则'}
+                      {busy
+                        ? isZh
+                          ? '正在加密保存…'
+                          : 'Encrypting…'
+                        : isZh
+                          ? '加密保存本站规则'
+                          : 'Save encrypted rule'}
                     </button>
                   </div>
                 </div>
@@ -444,7 +534,7 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
 
               <div className="preview-builder">
                 <label className="field" htmlFor="fill-preset">
-                  <span>选择场景预设</span>
+                  <span>{isZh ? '选择场景预设' : 'Scenario preset'}</span>
                   <select
                     id="fill-preset"
                     value={selectedPresetId}
@@ -454,8 +544,8 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                       setFillResult(null);
                     }}
                   >
-                    <option value="">请选择</option>
-                    {vault.presets.map((preset) => (
+                    <option value="">{isZh ? '请选择' : 'Choose a preset'}</option>
+                    {workspace.presets.map((preset) => (
                       <option value={preset.id} key={preset.id}>
                         {preset.label}
                       </option>
@@ -468,7 +558,7 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                   onClick={generatePreview}
                   disabled={!selectedPresetId || busy}
                 >
-                  生成逐项预览
+                  {isZh ? '生成逐项预览' : 'Build field preview'}
                 </button>
               </div>
             </>
@@ -478,16 +568,20 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
             <div className="fill-preview">
               <div className="preview-heading">
                 <div>
-                  <p className="eyebrow">CONFIRM EACH FIELD</p>
-                  <h3>填充预览</h3>
+                  <p className="section-label">{isZh ? '逐项确认' : 'Confirm each field'}</p>
+                  <h3>{isZh ? '填充预览' : 'Fill preview'}</h3>
                 </div>
-                <span>{selectedCount} 项已选择</span>
+                <span>{isZh ? `${selectedCount} 项已选择` : `${selectedCount} selected`}</span>
               </div>
 
               {plan.length === 0 ? (
                 <div className="empty-state">
-                  <strong>没有可匹配的资料</strong>
-                  <p>请补充预设内容，或使用上方的本站字段规则修正映射。</p>
+                  <strong>{isZh ? '没有可匹配的资料' : 'No matching profile data'}</strong>
+                  <p>
+                    {isZh
+                      ? '请补充预设内容，或使用上方的本站字段规则修正映射。'
+                      : 'Add data to the preset or correct the mapping with a site rule above.'}
+                  </p>
                 </div>
               ) : (
                 <div className="fill-plan-list">
@@ -501,16 +595,21 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                       />
                       <span className="fill-plan-copy">
                         <strong>
-                          {item.targetLabel} → {SEMANTIC_LABELS[item.semantic]}
+                          {item.targetLabel} → {getSemanticLabel(item.semantic, locale)}
                         </strong>
                         <small>
-                          来自“{item.sourceLabel}” · {maskPreviewValue(item)}
+                          {isZh ? `来自“${item.sourceLabel}”` : `From “${item.sourceLabel}”`} ·{' '}
+                          {maskPreviewValue(item)}
                         </small>
                         {item.requiresExplicitConfirmation && (
                           <em>
                             {item.sensitivity === 3
-                              ? '高敏感字段：勾选即表示单独确认'
-                              : '低置信度或默认关闭：请人工确认'}
+                              ? isZh
+                                ? '高敏感字段：勾选即表示单独确认'
+                                : 'Highly sensitive: selecting confirms this field'
+                              : isZh
+                                ? '低置信度或默认关闭：请人工确认'
+                                : 'Low confidence or disabled by default: review required'}
                           </em>
                         )}
                       </span>
@@ -526,14 +625,21 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
                   disabled={busy || selectedCount === 0}
                   onClick={() => void fillSelectedFields()}
                 >
-                  {busy ? '正在填写…' : `确认填写 ${selectedCount} 项`}
+                  {busy
+                    ? isZh
+                      ? '正在填写…'
+                      : 'Filling…'
+                    : isZh
+                      ? `确认填写 ${selectedCount} 项`
+                      : `Fill ${selectedCount} fields`}
                 </button>
               )}
 
               {fillResult && (
                 <p className="fill-result" role="status">
-                  已填写 {fillResult.filled} 项；因页面已有内容跳过 {fillResult.skippedOccupied}{' '}
-                  项；未能匹配 {fillResult.failed} 项。页面尚未提交，请你检查后手动继续。
+                  {isZh
+                    ? `已填写 ${fillResult.filled} 项；因页面已有内容跳过 ${fillResult.skippedOccupied} 项；未能匹配 ${fillResult.failed} 项。页面尚未提交，请你检查后手动继续。`
+                    : `Filled ${fillResult.filled}; skipped ${fillResult.skippedOccupied} existing values; ${fillResult.failed} could not be matched. The page was not submitted—review it and continue manually.`}
                 </p>
               )}
             </div>
@@ -544,7 +650,7 @@ export function PageScanner({ vault, onSave }: PageScannerProps) {
   );
 }
 
-function getVisibleFieldName(field: ClassifiedField): string {
+function getVisibleFieldName(field: ClassifiedField, locale: DataLocale): string {
   const signal = field.signal;
   return (
     signal.labels[0] ||
@@ -552,7 +658,9 @@ function getVisibleFieldName(field: ClassifiedField): string {
     signal.placeholder ||
     signal.locator.name ||
     signal.locator.id ||
-    `${signal.locator.tagName} 字段 ${signal.locator.ordinal + 1}`
+    (locale === 'zh-CN'
+      ? `${signal.locator.tagName} 字段 ${signal.locator.ordinal + 1}`
+      : `${signal.locator.tagName} field ${signal.locator.ordinal + 1}`)
   );
 }
 
@@ -563,14 +671,23 @@ function maskPreviewValue(item: FillPlanItem): string {
   return `${item.value.slice(0, 2)}••••${item.value.slice(-2)}`;
 }
 
-function getFieldSemanticLabel(field: ClassifiedField, vault: VaultData): string {
+function getFieldSemanticLabel(
+  field: ClassifiedField,
+  workspace: WorkspaceData,
+  locale: DataLocale,
+): string {
   if (field.customFieldId) {
     return (
-      vault.customFields.find((customField) => customField.id === field.customFieldId)?.label ??
-      '自定义字段'
+      workspace.customFields.find((customField) => customField.id === field.customFieldId)?.label ??
+      getSemanticLabel('unknown', locale)
     );
   }
-  return SEMANTIC_LABELS[field.semantic];
+  return getSemanticLabel(field.semantic, locale);
+}
+
+function getSemanticLabel(semantic: SemanticField, locale: DataLocale): string {
+  const labels = SEMANTIC_LABELS[semantic];
+  return locale === 'zh-CN' ? labels.zh : labels.en;
 }
 
 function siteSourceToChoice(source: SiteRuleSource): string {
@@ -586,9 +703,7 @@ function choiceToSiteSource(choice: string): SiteRuleSource | null {
   }
   if (choice.startsWith('semantic:')) {
     const semantic = choice.slice('semantic:'.length) as Exclude<SemanticField, 'unknown'>;
-    return MAPPABLE_SEMANTICS.some(([candidate]) => candidate === semantic)
-      ? { kind: 'semantic', semantic }
-      : null;
+    return MAPPABLE_SEMANTICS.includes(semantic) ? { kind: 'semantic', semantic } : null;
   }
   return null;
 }

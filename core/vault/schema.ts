@@ -1,8 +1,9 @@
 import type { SemanticField } from '../form/types';
+import { DATA_LOCALES, isChoiceId, resolveChoiceId, type DataLocale } from '../reference/options';
 
 export const VAULT_FORMAT = 'suifill-vault';
 export const VAULT_ENVELOPE_VERSION = 1;
-export const VAULT_SCHEMA_VERSION = 1;
+export const VAULT_SCHEMA_VERSION = 2;
 export const PBKDF2_ITERATIONS = 600_000;
 
 export interface EntityMetadata {
@@ -18,12 +19,12 @@ export interface IdentityProfile extends EntityMetadata {
   middleName: string;
   lastName: string;
   preferredName: string;
-  englishName: string;
   birthDate: string;
+  title: string;
   gender: string;
   pronouns: string;
   nationality: string;
-  preferredLanguage: string;
+  region: string;
   occupation: string;
   organization: string;
 }
@@ -35,14 +36,19 @@ export interface ContactProfile extends EntityMetadata {
   alternatePhone: string;
   countryCode: string;
   wechat: string;
-  website: string;
+  telegram: string;
+  instagram: string;
+  whatsapp: string;
+  additionalLink1: string;
+  additionalLink2: string;
+  additionalLink3: string;
   purpose: string;
 }
 
 export interface AddressProfile extends EntityMetadata {
   recipient: string;
   phone: string;
-  country: string;
+  countryOrRegion: string;
   countryCode: string;
   province: string;
   city: string;
@@ -51,8 +57,7 @@ export interface AddressProfile extends EntityMetadata {
   addressLine2: string;
   postalCode: string;
   company: string;
-  fullAddressZh: string;
-  fullAddressEn: string;
+  fullAddress: string;
   purpose: string;
 }
 
@@ -94,9 +99,8 @@ export interface SiteRule extends EntityMetadata {
   mappings: SiteFieldMapping[];
 }
 
-export interface VaultData {
-  schemaVersion: typeof VAULT_SCHEMA_VERSION;
-  createdAt: string;
+export interface WorkspaceData {
+  locale: DataLocale;
   updatedAt: string;
   identities: IdentityProfile[];
   contacts: ContactProfile[];
@@ -104,6 +108,13 @@ export interface VaultData {
   customFields: CustomField[];
   presets: Preset[];
   siteRules: SiteRule[];
+}
+
+export interface VaultData {
+  schemaVersion: typeof VAULT_SCHEMA_VERSION;
+  createdAt: string;
+  updatedAt: string;
+  workspaces: Record<DataLocale, WorkspaceData>;
 }
 
 export interface VaultEnvelope {
@@ -124,12 +135,15 @@ export interface VaultEnvelope {
   updatedAt: string;
 }
 
-export function createEmptyVault(now = new Date()): VaultData {
-  const timestamp = now.toISOString();
+export interface VaultMigrationResult {
+  vault: VaultData;
+  migrated: boolean;
+}
+
+export function createEmptyWorkspace(locale: DataLocale, now = new Date()): WorkspaceData {
   return {
-    schemaVersion: VAULT_SCHEMA_VERSION,
-    createdAt: timestamp,
-    updatedAt: timestamp,
+    locale,
+    updatedAt: now.toISOString(),
     identities: [],
     contacts: [],
     addresses: [],
@@ -139,42 +153,151 @@ export function createEmptyVault(now = new Date()): VaultData {
   };
 }
 
-export function isVaultData(value: unknown): value is VaultData {
-  if (!isRecord(value)) return false;
+export function createEmptyVault(now = new Date()): VaultData {
+  const timestamp = now.toISOString();
+  return {
+    schemaVersion: VAULT_SCHEMA_VERSION,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    workspaces: {
+      'zh-CN': createEmptyWorkspace('zh-CN', now),
+      'en-US': createEmptyWorkspace('en-US', now),
+    },
+  };
+}
 
+export function replaceWorkspace(
+  vault: VaultData,
+  locale: DataLocale,
+  workspace: WorkspaceData,
+  now = new Date(),
+): VaultData {
+  const timestamp = now.toISOString();
+  return {
+    ...vault,
+    updatedAt: timestamp,
+    workspaces: {
+      ...vault.workspaces,
+      [locale]: { ...workspace, locale, updatedAt: timestamp },
+    },
+  };
+}
+
+export function isVaultData(value: unknown): value is VaultData {
+  if (!isRecord(value) || !isRecord(value.workspaces)) return false;
+  const workspaces = value.workspaces;
   return (
     value.schemaVersion === VAULT_SCHEMA_VERSION &&
     typeof value.createdAt === 'string' &&
+    typeof value.updatedAt === 'string' &&
+    DATA_LOCALES.every((locale) => isWorkspaceData(workspaces[locale], locale))
+  );
+}
+
+export function migrateVaultData(value: unknown): VaultMigrationResult | null {
+  if (isVaultData(value)) return { vault: value, migrated: false };
+  if (!isLegacyVaultData(value)) return null;
+
+  const updatedAt = new Date(value.updatedAt);
+  const migrationTime = Number.isNaN(updatedAt.getTime()) ? new Date() : updatedAt;
+  const zh = createEmptyWorkspace('zh-CN', migrationTime);
+  const en = createEmptyWorkspace('en-US', migrationTime);
+
+  zh.identities = value.identities.map((identity) => migrateLegacyIdentity(identity, 'zh-CN'));
+  zh.contacts = value.contacts.map(migrateLegacyContact);
+  zh.addresses = value.addresses.map((address) => migrateLegacyAddress(address, 'zh-CN'));
+  zh.customFields = value.customFields.map((field) => ({ ...field }));
+  zh.presets = value.presets.map((preset) => ({
+    ...preset,
+    customFieldIds: [...preset.customFieldIds],
+  }));
+  zh.siteRules = value.siteRules.map((rule) => ({
+    ...rule,
+    mappings: rule.mappings.map((mapping) => ({
+      signature: { ...mapping.signature },
+      source: { ...mapping.source },
+    })),
+  }));
+
+  en.identities = value.identities.flatMap((identity) => {
+    if (!identity.englishName.trim()) return [];
+    return [
+      {
+        ...migrateLegacyIdentity(identity, 'en-US'),
+        id: `${identity.id}-en`,
+        label: `${identity.label} · English`,
+        fullName: identity.englishName.trim(),
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        preferredName: '',
+      },
+    ];
+  });
+  en.addresses = value.addresses.flatMap((address) => {
+    if (!address.fullAddressEn.trim()) return [];
+    return [
+      {
+        ...migrateLegacyAddress(address, 'en-US'),
+        id: `${address.id}-en`,
+        label: `${address.label} · English`,
+        fullAddress: address.fullAddressEn.trim(),
+      },
+    ];
+  });
+
+  return {
+    migrated: true,
+    vault: {
+      schemaVersion: VAULT_SCHEMA_VERSION,
+      createdAt: value.createdAt,
+      updatedAt: value.updatedAt,
+      workspaces: { 'zh-CN': zh, 'en-US': en },
+    },
+  };
+}
+
+function isWorkspaceData(value: unknown, locale: DataLocale): value is WorkspaceData {
+  if (!isRecord(value)) return false;
+  const valid =
+    value.locale === locale &&
     typeof value.updatedAt === 'string' &&
     isArrayOf(value.identities, isIdentityProfile) &&
     isArrayOf(value.contacts, isContactProfile) &&
     isArrayOf(value.addresses, isAddressProfile) &&
     isArrayOf(value.customFields, isCustomField) &&
     isArrayOf(value.presets, isPreset) &&
-    isArrayOf(value.siteRules, isSiteRule) &&
-    hasValidPresetReferences(value) &&
-    hasValidSiteRuleReferences(value)
-  );
+    isArrayOf(value.siteRules, isSiteRule);
+  return valid && hasValidPresetReferences(value) && hasValidSiteRuleReferences(value);
 }
 
 function isIdentityProfile(value: unknown): value is IdentityProfile {
-  return (
-    hasEntityMetadata(value) &&
-    hasStringProperties(value, [
+  if (!hasEntityMetadata(value)) return false;
+  if (
+    !hasStringProperties(value, [
       'fullName',
       'firstName',
       'middleName',
       'lastName',
       'preferredName',
-      'englishName',
       'birthDate',
+      'title',
       'gender',
       'pronouns',
       'nationality',
-      'preferredLanguage',
+      'region',
       'occupation',
       'organization',
     ])
+  ) {
+    return false;
+  }
+  return (
+    isChoiceId('title', value.title) &&
+    isChoiceId('gender', value.gender) &&
+    isChoiceId('pronouns', value.pronouns) &&
+    isChoiceId('nationality', value.nationality) &&
+    isChoiceId('region', value.region)
   );
 }
 
@@ -188,19 +311,24 @@ function isContactProfile(value: unknown): value is ContactProfile {
       'alternatePhone',
       'countryCode',
       'wechat',
-      'website',
+      'telegram',
+      'instagram',
+      'whatsapp',
+      'additionalLink1',
+      'additionalLink2',
+      'additionalLink3',
       'purpose',
     ])
   );
 }
 
 function isAddressProfile(value: unknown): value is AddressProfile {
-  return (
-    hasEntityMetadata(value) &&
-    hasStringProperties(value, [
+  if (!hasEntityMetadata(value)) return false;
+  if (
+    !hasStringProperties(value, [
       'recipient',
       'phone',
-      'country',
+      'countryOrRegion',
       'countryCode',
       'province',
       'city',
@@ -209,16 +337,17 @@ function isAddressProfile(value: unknown): value is AddressProfile {
       'addressLine2',
       'postalCode',
       'company',
-      'fullAddressZh',
-      'fullAddressEn',
+      'fullAddress',
       'purpose',
     ])
-  );
+  ) {
+    return false;
+  }
+  return isChoiceId('region', value.countryOrRegion);
 }
 
 function isCustomField(value: unknown): value is CustomField {
   if (!hasEntityMetadata(value)) return false;
-
   return (
     typeof value.value === 'string' &&
     Array.isArray(value.aliases) &&
@@ -231,7 +360,6 @@ function isCustomField(value: unknown): value is CustomField {
 
 function isPreset(value: unknown): value is Preset {
   if (!hasEntityMetadata(value)) return false;
-
   return (
     typeof value.description === 'string' &&
     isNullableString(value.identityId) &&
@@ -265,7 +393,6 @@ function isSiteFieldMapping(value: unknown): value is SiteFieldMapping {
     typeof signature.label === 'string' &&
     Boolean(signature.id || signature.name || signature.label);
   if (!validSignature) return false;
-
   if (source.kind === 'semantic') {
     return typeof source.semantic === 'string' && isSiteSemantic(source.semantic);
   }
@@ -278,12 +405,10 @@ function hasValidPresetReferences(value: Record<string, unknown>): boolean {
   const addresses = value.addresses as AddressProfile[];
   const customFields = value.customFields as CustomField[];
   const presets = value.presets as Preset[];
-
   const identityIds = new Set(identities.map((item) => item.id));
   const contactIds = new Set(contacts.map((item) => item.id));
   const addressIds = new Set(addresses.map((item) => item.id));
   const customFieldIds = new Set(customFields.map((item) => item.id));
-
   return presets.every(
     (preset) =>
       (preset.identityId === null || identityIds.has(preset.identityId)) &&
@@ -298,7 +423,6 @@ function hasValidSiteRuleReferences(value: Record<string, unknown>): boolean {
   const siteRules = value.siteRules as SiteRule[];
   const hostnames = siteRules.map((rule) => rule.hostname);
   if (new Set(hostnames).size !== hostnames.length) return false;
-
   return siteRules.every((rule) =>
     rule.mappings.every(
       (mapping) =>
@@ -324,9 +448,14 @@ function isSiteSemantic(value: string): value is Exclude<SemanticField, 'unknown
     'firstName',
     'middleName',
     'lastName',
+    'title',
     'email',
     'phone',
     'phoneCountryCode',
+    'wechat',
+    'telegram',
+    'instagram',
+    'whatsapp',
     'organization',
     'addressLine1',
     'addressLine2',
@@ -335,11 +464,215 @@ function isSiteSemantic(value: string): value is Exclude<SemanticField, 'unknown
     'province',
     'postalCode',
     'country',
+    'region',
+    'nationality',
     'birthDate',
     'gender',
+    'pronouns',
     'website',
     'username',
   ].includes(value);
+}
+
+interface LegacyIdentity extends EntityMetadata {
+  fullName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  preferredName: string;
+  englishName: string;
+  birthDate: string;
+  gender: string;
+  pronouns: string;
+  nationality: string;
+  preferredLanguage: string;
+  occupation: string;
+  organization: string;
+}
+
+interface LegacyContact extends EntityMetadata {
+  email: string;
+  alternateEmail: string;
+  phone: string;
+  alternatePhone: string;
+  countryCode: string;
+  wechat: string;
+  website: string;
+  purpose: string;
+}
+
+interface LegacyAddress extends EntityMetadata {
+  recipient: string;
+  phone: string;
+  country: string;
+  countryCode: string;
+  province: string;
+  city: string;
+  district: string;
+  addressLine1: string;
+  addressLine2: string;
+  postalCode: string;
+  company: string;
+  fullAddressZh: string;
+  fullAddressEn: string;
+  purpose: string;
+}
+
+interface LegacyVaultData {
+  schemaVersion: 1;
+  createdAt: string;
+  updatedAt: string;
+  identities: LegacyIdentity[];
+  contacts: LegacyContact[];
+  addresses: LegacyAddress[];
+  customFields: CustomField[];
+  presets: Preset[];
+  siteRules: SiteRule[];
+}
+
+function isLegacyVaultData(value: unknown): value is LegacyVaultData {
+  if (!isRecord(value)) return false;
+  return (
+    value.schemaVersion === 1 &&
+    typeof value.createdAt === 'string' &&
+    typeof value.updatedAt === 'string' &&
+    isArrayOf(value.identities, isLegacyIdentity) &&
+    isArrayOf(value.contacts, isLegacyContact) &&
+    isArrayOf(value.addresses, isLegacyAddress) &&
+    isArrayOf(value.customFields, isCustomField) &&
+    isArrayOf(value.presets, isPreset) &&
+    isArrayOf(value.siteRules, isSiteRule) &&
+    hasValidPresetReferences(value) &&
+    hasValidSiteRuleReferences(value)
+  );
+}
+
+function isLegacyIdentity(value: unknown): value is LegacyIdentity {
+  return (
+    hasEntityMetadata(value) &&
+    hasStringProperties(value, [
+      'fullName',
+      'firstName',
+      'middleName',
+      'lastName',
+      'preferredName',
+      'englishName',
+      'birthDate',
+      'gender',
+      'pronouns',
+      'nationality',
+      'preferredLanguage',
+      'occupation',
+      'organization',
+    ])
+  );
+}
+
+function isLegacyContact(value: unknown): value is LegacyContact {
+  return (
+    hasEntityMetadata(value) &&
+    hasStringProperties(value, [
+      'email',
+      'alternateEmail',
+      'phone',
+      'alternatePhone',
+      'countryCode',
+      'wechat',
+      'website',
+      'purpose',
+    ])
+  );
+}
+
+function isLegacyAddress(value: unknown): value is LegacyAddress {
+  return (
+    hasEntityMetadata(value) &&
+    hasStringProperties(value, [
+      'recipient',
+      'phone',
+      'country',
+      'countryCode',
+      'province',
+      'city',
+      'district',
+      'addressLine1',
+      'addressLine2',
+      'postalCode',
+      'company',
+      'fullAddressZh',
+      'fullAddressEn',
+      'purpose',
+    ])
+  );
+}
+
+function migrateLegacyIdentity(identity: LegacyIdentity, locale: DataLocale): IdentityProfile {
+  return {
+    id: identity.id,
+    label: identity.label,
+    createdAt: identity.createdAt,
+    updatedAt: identity.updatedAt,
+    fullName: identity.fullName,
+    firstName: identity.firstName,
+    middleName: identity.middleName,
+    lastName: identity.lastName,
+    preferredName: identity.preferredName,
+    birthDate: identity.birthDate,
+    title: '',
+    gender: resolveChoiceId('gender', identity.gender, locale) ?? '',
+    pronouns: resolveChoiceId('pronouns', identity.pronouns, locale) ?? '',
+    nationality: resolveChoiceId('nationality', identity.nationality, locale) ?? '',
+    region: '',
+    occupation: identity.occupation,
+    organization: identity.organization,
+  };
+}
+
+function migrateLegacyContact(contact: LegacyContact): ContactProfile {
+  return {
+    id: contact.id,
+    label: contact.label,
+    createdAt: contact.createdAt,
+    updatedAt: contact.updatedAt,
+    email: contact.email,
+    alternateEmail: contact.alternateEmail,
+    phone: contact.phone,
+    alternatePhone: contact.alternatePhone,
+    countryCode: contact.countryCode,
+    wechat: contact.wechat,
+    telegram: '',
+    instagram: '',
+    whatsapp: '',
+    additionalLink1: contact.website,
+    additionalLink2: '',
+    additionalLink3: '',
+    purpose: contact.purpose,
+  };
+}
+
+function migrateLegacyAddress(address: LegacyAddress, locale: DataLocale): AddressProfile {
+  return {
+    id: address.id,
+    label: address.label,
+    createdAt: address.createdAt,
+    updatedAt: address.updatedAt,
+    recipient: address.recipient,
+    phone: address.phone,
+    countryOrRegion: resolveChoiceId('region', address.country, locale) ?? '',
+    countryCode: address.countryCode,
+    province: address.province,
+    city: address.city,
+    district: address.district,
+    addressLine1: address.addressLine1,
+    addressLine2: address.addressLine2,
+    postalCode: address.postalCode,
+    company: address.company,
+    fullAddress:
+      locale === 'zh-CN'
+        ? address.fullAddressZh || address.fullAddressEn
+        : address.fullAddressEn || address.fullAddressZh,
+    purpose: address.purpose,
+  };
 }
 
 function isNullableString(value: unknown): value is string | null {
@@ -358,10 +691,10 @@ function hasEntityMetadata(value: unknown): value is EntityMetadata & Record<str
   );
 }
 
-function hasStringProperties(
+function hasStringProperties<K extends string>(
   value: Record<string, unknown>,
-  properties: readonly string[],
-): boolean {
+  properties: readonly K[],
+): value is Record<string, unknown> & Record<K, string> {
   return properties.every((property) => typeof value[property] === 'string');
 }
 
@@ -371,7 +704,6 @@ function isArrayOf<T>(value: unknown, guard: (item: unknown) => item is T): valu
 
 export function isVaultEnvelope(value: unknown): value is VaultEnvelope {
   if (!isRecord(value) || !isRecord(value.kdf) || !isRecord(value.cipher)) return false;
-
   return (
     value.format === VAULT_FORMAT &&
     value.version === VAULT_ENVELOPE_VERSION &&

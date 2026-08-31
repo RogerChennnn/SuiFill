@@ -1,6 +1,6 @@
 # SuiFill Privacy Notice
 
-Effective date: 2026-08-27
+Effective date: 2026-08-31
 
 SuiFill is a local-first browser extension for managing multiple sets of personal information and filling a user-reviewed selection into the current web page. This notice describes the data boundary implemented by the open-source extension.
 
@@ -8,7 +8,7 @@ SuiFill is a local-first browser extension for managing multiple sets of persona
 
 The user may enter identity details, contact details, addresses, custom fields, scenario presets, and per-site field mappings. All of this content, including site-rule hostnames and field signatures, is kept inside one authenticated encrypted vault in browser extension storage.
 
-The stored envelope contains AES-GCM ciphertext plus the random salt, random initialization vector, algorithm metadata, format versions, and timestamps needed to unlock it. The master password and derived encryption key are never persisted or transmitted.
+The stored envelope contains AES-GCM ciphertext plus the random salt, random initialization vector, algorithm metadata, format versions, and timestamps needed to unlock it. The master password is never persisted or transmitted. After a successful unlock, a raw unlock key is retained only in browser session storage for one fixed hour so the side panel can be reopened without another password entry. Manual lock, expiry, vault deletion, or browser-session termination clears it.
 
 ## Local processing and network use
 
@@ -46,7 +46,7 @@ Vault data remains in browser extension storage until the user edits it, deletes
 
 ## Security limitations
 
-Encryption at rest does not protect data while the vault is unlocked from malware, a compromised browser or operating system, malicious extension updates, physical observation, or a destination page receiving confirmed values. Users should install releases from a trusted source, use a strong unique master password, review fill previews, and keep encrypted backups in a safe location.
+Encryption at rest does not protect data while the vault is unlocked from malware, a compromised browser or operating system, malicious extension updates, physical observation, or a destination page receiving confirmed values. SuiFill accepts any non-empty password for usability, including one character, but longer unique passwords are materially safer. Users should install releases from a trusted source, review fill previews, and keep encrypted backups in a safe location.
 
 ## Changes and contact
 

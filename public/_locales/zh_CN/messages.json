@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "SuiFill 随填"
+  },
+  "extensionDescription": {
+    "message": "在本地管理多套个人信息，确认后安全填入当前网页。"
+  },
+  "actionTitle": {
+    "message": "打开 SuiFill"
+  }
+}

@@ -10,10 +10,10 @@
 
 - Only an authenticated AES-GCM ciphertext is persisted.
 - Each vault has a random salt, and each save has a fresh random IV.
-- The derived key is non-extractable and memory-only.
+- The working `CryptoKey` is non-extractable. A raw unlock key may exist only in browser session storage during the fixed one-hour unlock window.
 - Wrong passwords and modified ciphertext fail with the same user-facing class of error.
-- Closing or reloading the side panel drops the unlocked session.
-- Fifteen minutes of side-panel inactivity locks the session.
+- Closing or reloading the side panel does not extend the unlock window. A raw unlock key remains in browser session storage for one fixed hour, then is cleared.
+- Manual lock clears the browser-session unlock key immediately.
 - High-sensitivity custom fields cannot opt into default bulk filling.
 - Presets do not duplicate personal values, and dangling preset references fail schema validation.
 - Page scanning requires an explicit click, skips password controls, never reads current control values, and remains memory-only.
@@ -27,7 +27,7 @@
 
 ## Residual risks
 
-- A weak master password can be guessed offline if an attacker obtains the ciphertext.
+- Any non-empty master password is accepted for usability, including one character. Weak passwords can be guessed offline if an attacker obtains the ciphertext, so the UI recommends a longer password without enforcing it.
 - Malware or another process controlling the user device may read data while the vault is unlocked.
 - Future target websites can read values after the user confirms filling them, just as they can read manually entered values.
 - Browser extension updates and third-party dependencies are supply-chain risks and require review.

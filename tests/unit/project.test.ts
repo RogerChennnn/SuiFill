@@ -3,7 +3,7 @@ import { getProjectProgress, MILESTONES, PROJECT_NAME } from '../../core/project
 
 describe('project metadata', () => {
   it('keeps the planned nine milestones visible', () => {
-    expect(PROJECT_NAME).toBe('SuiFill 随填');
+    expect(PROJECT_NAME).toBe('SuiFill');
     expect(MILESTONES).toHaveLength(9);
   });
 
