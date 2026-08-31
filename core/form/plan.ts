@@ -23,26 +23,12 @@ export function buildFillPlan(
   return fields.flatMap((originalField) => {
     if (
       originalField.signal.visualGroupRole === 'prefix' &&
+      originalField.semantic === 'phoneCountryCode' &&
       originalField.signal.locator.tagName !== 'select'
     ) {
       return [];
     }
-    const field: ClassifiedField =
-      originalField.signal.visualGroupRole === 'main'
-        ? {
-            ...originalField,
-            semantic: 'phone',
-            customFieldId: undefined,
-            confidence: Math.max(originalField.confidence, 0.88),
-          }
-        : originalField.signal.visualGroupRole === 'prefix'
-          ? {
-              ...originalField,
-              semantic: 'phoneCountryCode',
-              customFieldId: undefined,
-              confidence: Math.max(originalField.confidence, 0.86),
-            }
-          : originalField;
+    const field: ClassifiedField = originalField;
     const mappedCustom = field.customFieldId
       ? customFields.find((customField) => customField.id === field.customFieldId)
       : undefined;
@@ -52,9 +38,16 @@ export function buildFillPlan(
           resolved: toCustomResolvedValue(mappedCustom),
         }
       : null;
-    const standard = directCustom
+    const standardSource = directCustom
       ? undefined
       : resolveStandardValue(field.semantic, standardValues, standardValueIndexes);
+    const standard =
+      standardSource && field.semantic === 'birthDate' && field.birthDatePart
+        ? {
+            ...standardSource,
+            value: resolveBirthDatePart(standardSource.value, field.birthDatePart),
+          }
+        : standardSource;
     const custom =
       directCustom ?? (standard ? null : resolveCustomValue(field.signal, customFields));
     const resolved = standard ?? custom?.resolved;
@@ -151,13 +144,21 @@ function resolveStandardValues(
     add('province', address.province, address.label);
     add('city', address.city, address.label);
     add('district', address.district, address.label);
-    add('addressLine1', address.addressLine1 || address.fullAddress, address.label);
+    add('addressLine1', address.addressLine1, address.label);
     add('addressLine2', address.addressLine2, address.label);
     add('postalCode', address.postalCode, address.label);
     add('organization', address.company, address.label);
   }
 
   return values;
+}
+
+function resolveBirthDatePart(value: string, part: 'month' | 'day' | 'year'): string {
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/u.exec(value.trim());
+  if (!match) return '';
+  if (part === 'year') return match[1] ?? '';
+  const component = part === 'month' ? match[2] : match[3];
+  return component ? String(Number(component)) : '';
 }
 
 const MULTI_VALUE_SEMANTICS = new Set<SemanticField>(['email', 'phone', 'website']);

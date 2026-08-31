@@ -34,3 +34,5 @@ The v0.2.5 regressions run the ByteDance-style row through scanning, classificat
 The v0.2.6 regressions preserve non-empty controls by default, allow a user-confirmed fill instruction to replace an existing value, and prove that replacement cannot touch an unselected control. The execution result separately reports replacements and protected skips.
 
 The v0.2.7 regressions recognize simplified- and traditional-Chinese variants of email, mailbox, and electronic-mail labels, require explicit email phrases such as `电邮地址` to outrank the generic physical-address substring `地址`, and retain correct classification for detailed, mailing, and recipient-address labels.
+
+The v0.2.8 regressions distinguish parenthesized Chinese address line 1/2 labels, require an empty stored line 2 to produce no instruction, parse one stored ISO birth date into month/day/year controls, match an unpadded month to a numeric select option, and model an IBKR-style date row following a phone section without cross-classification.

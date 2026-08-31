@@ -28,6 +28,8 @@ export type SemanticField =
   | 'username'
   | 'unknown';
 
+export type BirthDatePart = 'month' | 'day' | 'year';
+
 export interface FieldLocator {
   ordinal: number;
   tagName: 'input' | 'select' | 'textarea';
@@ -62,6 +64,7 @@ export interface ClassifiedField {
   semantic: SemanticField;
   confidence: number;
   evidence: string[];
+  birthDatePart?: BirthDatePart;
   customFieldId?: string;
 }
 

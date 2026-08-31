@@ -28,6 +28,8 @@ describe('form semantic classifier', () => {
     ],
     ['accessible label', signal({ ariaLabel: 'Company name' }), 'organization'],
     ['placeholder', signal({ placeholder: '请输入详细地址' }), 'addressLine1'],
+    ['parenthesized address line 1', signal({ labels: ['地址（第一行）'] }), 'addressLine1'],
+    ['parenthesized address line 2', signal({ labels: ['地址（第二行）'] }), 'addressLine2'],
     ['username isolation', signal({ autocomplete: 'username', labels: ['User name'] }), 'username'],
     ['address level', signal({ autocomplete: 'billing address-level2' }), 'city'],
     ['telephone country code', signal({ autocomplete: 'tel-country-code' }), 'phoneCountryCode'],
@@ -77,6 +79,35 @@ describe('form semantic classifier', () => {
     expect(result.semantic).toBe('phone');
     expect(result.confidence).toBe(0.98);
     expect(result.evidence).toContain('网页代码与视觉位置相互确认');
+  });
+
+  it('classifies a month/day/year birth-date group without phone-label contamination', () => {
+    const fields = classifyFields([
+      signal({
+        locator: { ordinal: 0, tagName: 'select', id: '', name: '' },
+        labels: ['月', '出生日期'],
+        codeLabels: ['月'],
+        visualLabels: ['月', '出生日期'],
+        visualGroupRole: 'prefix',
+      }),
+      signal({
+        locator: { ordinal: 1, tagName: 'input', id: '', name: '' },
+        labels: ['天', '电话号码'],
+        codeLabels: ['天'],
+        visualLabels: ['天', '电话号码'],
+        visualGroupRole: 'main',
+      }),
+      signal({
+        locator: { ordinal: 2, tagName: 'input', id: '', name: '' },
+        labels: ['年', '出生日期'],
+        codeLabels: ['年'],
+        visualLabels: ['年', '出生日期'],
+      }),
+    ]);
+
+    expect(fields.map((field) => field.semantic)).toEqual(['birthDate', 'birthDate', 'birthDate']);
+    expect(fields.map((field) => field.birthDatePart)).toEqual(['month', 'day', 'year']);
+    expect(fields.every((field) => field.confidence === 0.96)).toBe(true);
   });
 
   it.each([

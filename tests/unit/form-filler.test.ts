@@ -78,4 +78,22 @@ describe('applyFillInstructions overwrite policy', () => {
     expect(result.overwritten).toBe(1);
     expect(result.filled).toBe(1);
   });
+
+  it('matches an unpadded birth month to a numeric select option', () => {
+    const document = installDom(`
+      <select id="birth-month">
+        <option value="">Choose</option>
+        <option value="07">7月</option>
+      </select>
+    `);
+    const instruction: FillInstruction = {
+      locator: { ordinal: 0, tagName: 'select', id: 'birth-month', name: '' },
+      value: '7',
+    };
+
+    const result = applyFillInstructions([instruction], 'forms.example.test');
+
+    expect((document.getElementById('birth-month') as HTMLSelectElement).value).toBe('07');
+    expect(result.filled).toBe(1);
+  });
 });

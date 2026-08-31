@@ -1,4 +1,4 @@
-import type { ClassifiedField, RawFieldSignal, SemanticField } from './types';
+import type { BirthDatePart, ClassifiedField, RawFieldSignal, SemanticField } from './types';
 
 interface Rule {
   semantic: Exclude<SemanticField, 'unknown'>;
@@ -368,6 +368,9 @@ const RULES: Rule[] = [
 ];
 
 export function classifyField(signal: RawFieldSignal): ClassifiedField {
+  const explicitBirthDatePart = detectExplicitBirthDatePart(signal);
+  if (explicitBirthDatePart) return toBirthDatePartClassification(signal, explicitBirthDatePart);
+
   const scores = RULES.map((rule) => scoreRule(signal, rule)).sort((a, b) => b.score - a.score);
   const best = scores[0];
   const second = scores[1];
@@ -386,20 +389,28 @@ export function classifyField(signal: RawFieldSignal): ClassifiedField {
 }
 
 export function classifyFields(signals: RawFieldSignal[]): ClassifiedField[] {
-  const classified = signals.map(classifyField).map((field) => {
-    if (
-      (field.signal.visualGroupRole === 'prefix' || field.signal.visualGroupRole === 'main') &&
-      hasVisualPhoneLabel(field.signal)
-    ) {
-      return {
-        ...field,
-        semantic: 'phone' as const,
-        confidence: Math.max(field.confidence, 0.88),
-        evidence: [...new Set([...field.evidence, '组合控件视觉标签为电话'])],
-      };
-    }
-    return field;
-  });
+  const groupedBirthDateParts = detectGroupedBirthDateParts(signals);
+  const classified = signals
+    .map((signal, index) => {
+      const groupedPart = groupedBirthDateParts.get(index);
+      return groupedPart
+        ? toBirthDatePartClassification(signal, groupedPart)
+        : classifyField(signal);
+    })
+    .map((field) => {
+      if (
+        (field.signal.visualGroupRole === 'prefix' || field.signal.visualGroupRole === 'main') &&
+        hasVisualPhoneLabel(field.signal)
+      ) {
+        return {
+          ...field,
+          semantic: 'phone' as const,
+          confidence: Math.max(field.confidence, 0.88),
+          evidence: [...new Set([...field.evidence, '组合控件视觉标签为电话'])],
+        };
+      }
+      return field;
+    });
 
   return classified.map((field, index) => {
     const next = classified[index + 1];
@@ -427,8 +438,90 @@ export function classifyFields(signals: RawFieldSignal[]): ClassifiedField[] {
 function hasVisualPhoneLabel(signal: RawFieldSignal): boolean {
   const phoneRule = RULES.find((rule) => rule.semantic === 'phone');
   return Boolean(
-    phoneRule && getAliasMatchQuality((signal.visualLabels ?? []).join(' '), phoneRule.aliases) > 0,
+    phoneRule && getAliasMatchQuality(signal.visualLabels?.[0] ?? '', phoneRule.aliases) > 0,
   );
+}
+
+function detectExplicitBirthDatePart(signal: RawFieldSignal): BirthDatePart | undefined {
+  const primary = normalize(getPrimarySignalLabel(signal));
+  const explicitParts: Array<[BirthDatePart, string[]]> = [
+    ['month', ['birth month', 'month of birth', 'dob month', '出生月', '出生月份']],
+    ['day', ['birth day', 'day of birth', 'dob day', '出生日', '出生日期日', '出生日期天']],
+    ['year', ['birth year', 'year of birth', 'dob year', '出生年', '出生年份']],
+  ];
+
+  return explicitParts.find(([, aliases]) =>
+    aliases.some((alias) => primary === normalize(alias)),
+  )?.[0];
+}
+
+function detectGroupedBirthDateParts(signals: RawFieldSignal[]): Map<number, BirthDatePart> {
+  const parts = new Map<number, BirthDatePart>();
+  for (let index = 0; index <= signals.length - 3; index += 1) {
+    const group = signals.slice(index, index + 3);
+    const sequence = group.map((signal) => getShortDatePart(signal));
+    if (sequence.join('|') !== 'month|day|year') continue;
+
+    const context = normalize(group.map(getSignalContext).join(' '));
+    if (!/(?:出生日期|生日|date of birth|birth date|dob)/u.test(context)) continue;
+    parts.set(index, 'month');
+    parts.set(index + 1, 'day');
+    parts.set(index + 2, 'year');
+  }
+  return parts;
+}
+
+function getShortDatePart(signal: RawFieldSignal): BirthDatePart | undefined {
+  const primary = normalize(getPrimarySignalLabel(signal));
+  if (['月', '月份', 'month', 'mm'].includes(primary)) return 'month';
+  if (['天', '日', 'day', 'dd'].includes(primary)) return 'day';
+  if (['年', '年份', 'year', 'yyyy'].includes(primary)) return 'year';
+  return undefined;
+}
+
+function getPrimarySignalLabel(signal: RawFieldSignal): string {
+  const primaryVisual = signal.visualLabels?.[0] ?? '';
+  if (
+    ['月', '月份', '天', '日', '年', '年份', 'month', 'day', 'year', 'mm', 'dd', 'yyyy'].includes(
+      normalize(primaryVisual),
+    )
+  ) {
+    return primaryVisual;
+  }
+  return (
+    signal.codeLabels?.[0] ||
+    signal.labels[0] ||
+    signal.ariaLabel ||
+    signal.placeholder ||
+    signal.locator.name ||
+    signal.locator.id
+  );
+}
+
+function getSignalContext(signal: RawFieldSignal): string {
+  return [
+    ...signal.labels,
+    ...(signal.codeLabels ?? []),
+    ...(signal.visualLabels ?? []),
+    signal.ariaLabel,
+    signal.placeholder,
+    signal.locator.name,
+    signal.locator.id,
+    signal.autocomplete,
+  ].join(' ');
+}
+
+function toBirthDatePartClassification(
+  signal: RawFieldSignal,
+  birthDatePart: BirthDatePart,
+): ClassifiedField {
+  return {
+    signal,
+    semantic: 'birthDate',
+    birthDatePart,
+    confidence: 0.96,
+    evidence: ['识别出生日期拆分字段'],
+  };
 }
 
 function haveSharedLabel(left: string[], right: string[]): boolean {
@@ -476,7 +569,11 @@ function scoreRule(
     signal.codeLabels ??
     signal.labels.filter((label) => !normalizedVisualLabels.has(normalize(label)));
   const sources = [
-    { value: structuralLabels.join(' '), weight: 0.9, evidence: '匹配网页代码标签' },
+    ...structuralLabels.slice(0, 4).map((value, index) => ({
+      value,
+      weight: Math.max(0.66, 0.9 - index * 0.08),
+      evidence: '匹配网页代码标签',
+    })),
     { value: signal.ariaLabel, weight: 0.88, evidence: '匹配无障碍标签' },
     {
       value: `${signal.locator.name} ${signal.locator.id}`,
@@ -496,7 +593,7 @@ function scoreRule(
     if (matchQuality > 0) matchedCodeSignal = true;
   }
 
-  const visualMatchQuality = getRuleAliasMatchQuality(visualLabels.join(' '), rule);
+  const visualMatchQuality = getRuleAliasMatchQuality(visualLabels[0] ?? '', rule);
   if (visualMatchQuality > 0) {
     score = Math.max(score, 0.88 * visualMatchQuality);
     evidence.push('匹配视觉位置标签');
@@ -556,11 +653,13 @@ function isEmailSpecificLabel(value: string): boolean {
 function normalize(value: string): string {
   return value
     .normalize('NFKC')
-    .toLowerCase()
     .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .toLowerCase()
     .replace(/[_\-./:]+/g, ' ')
     .replace(/[^a-z0-9\u3400-\u9fff]+/g, ' ')
     .replace(/\s+/g, ' ')
+    .replace(/([\u3400-\u9fff])\s+(?=[\u3400-\u9fff0-9])/gu, '$1')
+    .replace(/([0-9])\s+(?=[\u3400-\u9fff])/gu, '$1')
     .trim();
 }
 

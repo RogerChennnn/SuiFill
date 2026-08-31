@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8] - 2026-09-01
+
+- Keep parenthesized Chinese address-line labels distinct so line 1 never fills line 2 when the stored second line is empty.
+- Recognize grouped birth-date month/day/year controls, split the stored ISO date into the correct component values, and match numeric month options.
+- Give each control's nearest label priority over secondary nearby text and require phone evidence before treating adjacent unequal controls as a composite phone row.
+- Add an IBKR-style regression that keeps birth day and year separate from the preceding phone section.
+
 ## [0.2.7] - 2026-09-01
 
 - Recognize common simplified- and traditional-Chinese email labels including 电邮地址, 电子信箱地址, and their variants.

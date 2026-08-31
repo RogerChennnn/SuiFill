@@ -58,6 +58,15 @@ export function applyFillInstructions(
     else element.value = value;
   };
 
+  const numericOptionMatches = (option: HTMLOptionElement, value: string): boolean => {
+    if (!/^\d+$/u.test(value.trim())) return false;
+    const expected = Number(value);
+    return [option.value, option.textContent ?? ''].some((candidate) => {
+      const match = /^\s*0*(\d+)\s*(?:月|日|年)?\s*$/u.exec(candidate);
+      return Boolean(match && Number(match[1]) === expected);
+    });
+  };
+
   for (const instruction of instructions) {
     const element = findControl(instruction);
     if (
@@ -75,7 +84,7 @@ export function applyFillInstructions(
       continue;
     }
 
-    const hadExistingValue = Boolean(element.value.trim());
+    const hadExistingValue = Boolean(String(element.value ?? '').trim());
     if (hadExistingValue && !instruction.overwriteExisting) {
       skippedOccupied += 1;
       continue;
@@ -95,13 +104,19 @@ export function applyFillInstructions(
       const option = Array.from(element.options).find(
         (item) =>
           item.value.trim().toLowerCase() === normalized ||
-          item.textContent?.trim().toLowerCase() === normalized,
+          item.textContent?.trim().toLowerCase() === normalized ||
+          numericOptionMatches(item, instruction.value),
       );
       if (!option) {
         failed += 1;
         continue;
       }
-      element.value = option.value;
+      const selectSetter = Object.getOwnPropertyDescriptor(
+        HTMLSelectElement.prototype,
+        'value',
+      )?.set;
+      if (selectSetter) selectSetter.call(element, option.value);
+      else option.selected = true;
     } else {
       setNativeValue(element, instruction.value);
     }

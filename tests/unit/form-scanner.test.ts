@@ -152,6 +152,39 @@ describe('page field scanner', () => {
     expect(JSON.stringify(scan)).not.toContain('fictional-existing');
   });
 
+  it('keeps an IBKR-style birth-date row separate from the preceding phone section', () => {
+    installDom(`
+      <section>
+        <span data-box="100,20,100,20">电话号码</span>
+        <input data-box="100,48,500,40" />
+        <h2 data-box="100,110,700,20">出生日期</h2>
+        <div class="date-labels">
+          <span data-box="100,145,40,20">月</span>
+          <span data-box="360,145,40,20">天</span>
+          <span data-box="530,145,40,20">年</span>
+        </div>
+        <div class="date-controls">
+          <select data-box="100,173,240,40"><option>选择（必选）</option></select>
+          <input data-box="360,173,150,40" />
+          <input data-box="530,173,150,40" />
+        </div>
+      </section>
+    `);
+
+    const scan = collectPageFieldSignals();
+    const classified = classifyFields(scan.fields);
+    const birthFields = classified.slice(1);
+
+    expect(birthFields.map((field) => field.signal.labels[0])).toEqual(['月', '天', '年']);
+    expect(birthFields.map((field) => field.semantic)).toEqual([
+      'birthDate',
+      'birthDate',
+      'birthDate',
+    ]);
+    expect(birthFields.map((field) => field.birthDatePart)).toEqual(['month', 'day', 'year']);
+    expect(birthFields.every((field) => !field.signal.visualGroupRole)).toBe(true);
+  });
+
   it('uses a shared visual shell when the calling-code widget is not a form control', () => {
     installDom(`
       <section>

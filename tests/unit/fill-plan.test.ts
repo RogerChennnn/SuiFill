@@ -42,7 +42,7 @@ function createPopulatedVault() {
       middleName: '',
       lastName: 'Example',
       preferredName: '',
-      birthDate: '',
+      birthDate: '2001-07-09',
       title: '',
       gender: '',
       pronouns: '',
@@ -174,11 +174,43 @@ describe('fill plan builder', () => {
     expect(plan[0]!.requiresExplicitConfirmation).toBe(true);
   });
 
-  it('excludes a custom prefix input and forces the main composite field to phone', () => {
+  it('keeps address line 1 and an empty address line 2 strictly separate', () => {
     const { workspace, preset } = createPopulatedVault();
-    const prefix = classified(4, 'phone', '+86', 0.68);
+    const plan = buildFillPlan(
+      [
+        classified(0, 'addressLine1', '地址（第一行）'),
+        classified(1, 'addressLine2', '地址（第二行）'),
+      ],
+      workspace,
+      preset,
+    );
+
+    expect(plan).toHaveLength(1);
+    expect(plan[0]!.semantic).toBe('addressLine1');
+    expect(plan[0]!.value).toBe('1 Fictional Road');
+  });
+
+  it('splits a stored birth date into month, day, and year values', () => {
+    const { workspace, preset } = createPopulatedVault();
+    const month = classified(0, 'birthDate', '月');
+    month.birthDatePart = 'month';
+    const day = classified(1, 'birthDate', '天');
+    day.birthDatePart = 'day';
+    day.signal.visualGroupRole = 'main';
+    const year = classified(2, 'birthDate', '年');
+    year.birthDatePart = 'year';
+
+    const plan = buildFillPlan([month, day, year], workspace, preset);
+
+    expect(plan.map((item) => item.semantic)).toEqual(['birthDate', 'birthDate', 'birthDate']);
+    expect(plan.map((item) => item.value)).toEqual(['7', '9', '2001']);
+  });
+
+  it('excludes a confirmed custom phone prefix and keeps the main phone field', () => {
+    const { workspace, preset } = createPopulatedVault();
+    const prefix = classified(4, 'phoneCountryCode', '+86', 0.86);
     prefix.signal.visualGroupRole = 'prefix';
-    const main = classified(6, 'fullName', '手机号码', 0.68);
+    const main = classified(6, 'phone', '手机号码', 0.88);
     main.signal.visualGroupRole = 'main';
     main.signal.visualLabels = ['手机号码'];
 

@@ -19,6 +19,18 @@ export function collectPageFieldSignals(): PageScanResult {
   const cleanText = (value: string | null | undefined): string =>
     (value ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT_LENGTH);
   const isDialCodeLiteral = (value: string): boolean => /^\+\s?\d{1,4}$/u.test(value.trim());
+  const isPhoneFieldHint = (value: string): boolean => {
+    const normalized = cleanText(value).normalize('NFKC').toLowerCase();
+    return (
+      isDialCodeLiteral(normalized) ||
+      /\b(?:phone|telephone|mobile|cellphone|cell phone|calling code|dial code)\b/u.test(
+        normalized,
+      ) ||
+      /(?:手机|电话|联系电话|电话号码|手机号|区号)/u.test(normalized)
+    );
+  };
+  const isShortDatePartHint = (value: string): boolean =>
+    /^(?:月|月份|天|日|年|年份|month|day|year|mm|dd|yyyy)$/iu.test(cleanText(value));
 
   const isVisible = (element: Element): boolean => {
     const style = window.getComputedStyle(element);
@@ -48,7 +60,9 @@ export function collectPageFieldSignals(): PageScanResult {
   // unlabeled control can use the closest text above or beside it. This reads only text
   // nodes and geometry; it never reads form-control values.
   const visualTextCandidates: VisualTextCandidate[] = [];
-  const visualTextElements = document.querySelectorAll('label, legend, span, p, div, dt, th, td');
+  const visualTextElements = document.querySelectorAll(
+    'label, legend, span, p, div, dt, th, td, h1, h2, h3, h4, h5, h6',
+  );
   for (const candidate of Array.from(visualTextElements)) {
     if (visualTextCandidates.length >= MAX_VISUAL_TEXT_CANDIDATES) break;
     if (
@@ -189,6 +203,7 @@ export function collectPageFieldSignals(): PageScanResult {
 
     const visualLabels = new Set<string>();
     let visualGroupRole: RawFieldSignal['visualGroupRole'];
+    let linkedPrefixSignal: RawFieldSignal | undefined;
     const controlRect = element.getBoundingClientRect();
     let visualBounds: VisualRect = {
       bottom: controlRect.bottom,
@@ -290,7 +305,8 @@ export function collectPageFieldSignals(): PageScanResult {
           top: Math.min(controlRect.top, adjacentPrefix.rect.top),
           width: Math.max(controlRect.right, adjacentPrefix.rect.right) - adjacentPrefix.rect.left,
         };
-        adjacentPrefix.signal.visualGroupRole = 'prefix';
+        linkedPrefixSignal = adjacentPrefix.signal;
+        linkedPrefixSignal.visualGroupRole = 'prefix';
       }
     }
 
@@ -346,48 +362,82 @@ export function collectPageFieldSignals(): PageScanResult {
             );
           })
           .sort((left, right) => right.rect.right - left.rect.right)[0];
-        if (renderedPrefix) renderedPrefix.signal.visualGroupRole = 'prefix';
+        if (renderedPrefix) {
+          linkedPrefixSignal = renderedPrefix.signal;
+          linkedPrefixSignal.visualGroupRole = 'prefix';
+        }
       }
     }
 
-    const rankedVisualLabels = visualTextCandidates
-      .map((candidate) => {
-        const horizontalOverlap =
-          Math.min(visualBounds.right, candidate.rect.right) -
-          Math.max(visualBounds.left, candidate.rect.left);
-        const leftAlignment = Math.abs(candidate.rect.left - visualBounds.left);
-        const aboveGap = visualBounds.top - candidate.rect.bottom;
-        const leftGap = visualBounds.left - candidate.rect.right;
-        const verticalCenterDelta = Math.abs(
-          candidate.rect.top +
-            candidate.rect.height / 2 -
-            (visualBounds.top + visualBounds.height / 2),
-        );
-        let score = Number.NEGATIVE_INFINITY;
+    const rankVisualLabels = (bounds: VisualRect) =>
+      visualTextCandidates
+        .map((candidate) => {
+          const horizontalOverlap =
+            Math.min(bounds.right, candidate.rect.right) -
+            Math.max(bounds.left, candidate.rect.left);
+          const leftAlignment = Math.abs(candidate.rect.left - bounds.left);
+          const aboveGap = bounds.top - candidate.rect.bottom;
+          const leftGap = bounds.left - candidate.rect.right;
+          const verticalCenterDelta = Math.abs(
+            candidate.rect.top + candidate.rect.height / 2 - (bounds.top + bounds.height / 2),
+          );
+          let score = Number.NEGATIVE_INFINITY;
 
-        const minimumOverlap = Math.min(24, visualBounds.width * 0.15);
-        if (
-          aboveGap >= -4 &&
-          aboveGap <= 72 &&
-          (horizontalOverlap >= minimumOverlap || leftAlignment <= 96)
-        ) {
-          score = Math.max(score, 100 - aboveGap - leftAlignment * 0.08);
-        }
-        if (
-          leftGap >= -4 &&
-          leftGap <= 260 &&
-          verticalCenterDelta <= Math.max(28, visualBounds.height)
-        ) {
-          score = Math.max(score, 82 - leftGap * 0.12 - verticalCenterDelta * 0.8);
-        }
+          const minimumOverlap = Math.min(24, bounds.width * 0.15);
+          if (
+            aboveGap >= -4 &&
+            aboveGap <= 72 &&
+            (horizontalOverlap >= minimumOverlap || leftAlignment <= 96)
+          ) {
+            score = Math.max(score, 100 - aboveGap - leftAlignment * 0.08);
+          }
+          if (
+            leftGap >= -4 &&
+            leftGap <= 260 &&
+            verticalCenterDelta <= Math.max(28, bounds.height)
+          ) {
+            score = Math.max(score, 82 - leftGap * 0.12 - verticalCenterDelta * 0.8);
+          }
 
-        return { score, text: candidate.text };
-      })
-      .filter((candidate) => Number.isFinite(candidate.score))
-      .sort((left, right) => right.score - left.score);
+          return { score, text: candidate.text };
+        })
+        .filter((candidate) => Number.isFinite(candidate.score))
+        .sort((left, right) => right.score - left.score);
+
+    let rankedVisualLabels = rankVisualLabels(visualBounds);
 
     for (const candidate of rankedVisualLabels.slice(0, 2)) {
       visualLabels.add(candidate.text);
+    }
+
+    const primaryCodeLabel = [...labels][0] ?? '';
+    const primaryVisualLabel = [...visualLabels][0] ?? '';
+    const hasPhoneGroupEvidence =
+      inputType === 'tel' ||
+      /(?:^|\s)tel(?:-|\s|$)/u.test(element.getAttribute('autocomplete') ?? '') ||
+      [
+        primaryCodeLabel,
+        primaryVisualLabel,
+        element.getAttribute('aria-label') ?? '',
+        element.getAttribute('placeholder') ?? '',
+        element.getAttribute('name') ?? '',
+        element.id,
+      ].some(isPhoneFieldHint);
+    if (visualGroupRole && !hasPhoneGroupEvidence) {
+      visualGroupRole = undefined;
+      if (linkedPrefixSignal) linkedPrefixSignal.visualGroupRole = undefined;
+      visualLabels.clear();
+      rankedVisualLabels = rankVisualLabels({
+        bottom: controlRect.bottom,
+        height: controlRect.height,
+        left: controlRect.left,
+        right: controlRect.right,
+        top: controlRect.top,
+        width: controlRect.width,
+      });
+      for (const candidate of rankedVisualLabels.slice(0, 2)) {
+        visualLabels.add(candidate.text);
+      }
     }
 
     if (labels.size === 0) {
@@ -403,8 +453,9 @@ export function collectPageFieldSignals(): PageScanResult {
     const codeLabels = [...labels].filter(
       (label) => visualGroupRole !== 'main' || !isDialCodeLiteral(label),
     );
+    const primaryVisualLabelForOrder = [...visualLabels][0] ?? '';
     const combinedLabels = new Set(
-      visualGroupRole === 'main'
+      visualGroupRole === 'main' || isShortDatePartHint(primaryVisualLabelForOrder)
         ? [...visualLabels, ...codeLabels]
         : [...codeLabels, ...visualLabels],
     );
