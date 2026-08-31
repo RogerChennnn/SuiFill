@@ -17,6 +17,7 @@ The responsible-disclosure contact will be added before public release. Until th
 ## Page data boundary
 
 - Scanning never reads current form-control values.
+- Position-based label recovery is bounded to short visible DOM text near a control; it captures no screenshot and performs no OCR.
 - Fill preview values remain in extension-page memory.
 - Only user-checked value/locator instructions reach the scanned page document.
 - Non-empty controls are never overwritten.

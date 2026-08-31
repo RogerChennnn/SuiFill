@@ -7,6 +7,7 @@ import type { PageScanResult, RawFieldSignal } from './types';
 export function collectPageFieldSignals(): PageScanResult {
   const MAX_FIELDS = 300;
   const MAX_TEXT_LENGTH = 160;
+  const MAX_VISUAL_TEXT_CANDIDATES = 1500;
   const candidates = Array.from(document.querySelectorAll('input, select, textarea'));
   const fields: RawFieldSignal[] = [];
   let skippedSensitive = 0;
@@ -23,6 +24,59 @@ export function collectPageFieldSignals(): PageScanResult {
       style.opacity !== '0'
     );
   };
+
+  type VisualTextCandidate = {
+    text: string;
+    rect: {
+      bottom: number;
+      height: number;
+      left: number;
+      right: number;
+      top: number;
+      width: number;
+    };
+  };
+
+  // Some modern form libraries place the visible label and its control in unrelated DOM
+  // branches. Cache a bounded set of short, visible text fragments so an otherwise
+  // unlabeled control can use the closest text above or beside it. This reads only text
+  // nodes and geometry; it never reads form-control values.
+  const visualTextCandidates: VisualTextCandidate[] = [];
+  const visualTextElements = document.querySelectorAll('label, legend, span, p, div, dt, th, td');
+  for (const candidate of Array.from(visualTextElements)) {
+    if (visualTextCandidates.length >= MAX_VISUAL_TEXT_CANDIDATES) break;
+    if (
+      candidate.closest(
+        'button, input, select, textarea, option, script, style, noscript, [contenteditable]',
+      ) ||
+      candidate.querySelector('input, select, textarea, [contenteditable]') ||
+      !isVisible(candidate)
+    ) {
+      continue;
+    }
+
+    const text = cleanText(
+      Array.from(candidate.childNodes)
+        .filter((child) => child.nodeType === 3)
+        .map((child) => child.textContent ?? '')
+        .join(' '),
+    );
+    if (!text || text.length > 80 || !/[a-z0-9\u3400-\u9fff]/iu.test(text)) continue;
+
+    const rect = candidate.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+    visualTextCandidates.push({
+      text,
+      rect: {
+        bottom: rect.bottom,
+        height: rect.height,
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        width: rect.width,
+      },
+    });
+  }
 
   for (let ordinal = 0; ordinal < candidates.length; ordinal += 1) {
     if (fields.length >= MAX_FIELDS) break;
@@ -124,6 +178,72 @@ export function collectPageFieldSignals(): PageScanResult {
         }
         if (labels.size > 0 || controlCount > 3) break;
         branch = parent;
+      }
+    }
+
+    if (labels.size === 0) {
+      const controlRect = element.getBoundingClientRect();
+      let visualControlLeft = controlRect.left;
+      let visualControlRight = controlRect.right;
+
+      // A phone number is often rendered as a wide country-code selector followed by
+      // a number input. Treat an immediately adjacent select as the visual start of the
+      // current control group so the shared label above the selector can reach the input.
+      const previousCandidate = candidates[ordinal - 1];
+      if (
+        element instanceof HTMLInputElement &&
+        previousCandidate instanceof HTMLSelectElement &&
+        isVisible(previousCandidate)
+      ) {
+        const previousRect = previousCandidate.getBoundingClientRect();
+        const horizontalGap = controlRect.left - previousRect.right;
+        const verticalCenterDelta = Math.abs(
+          previousRect.top + previousRect.height / 2 - (controlRect.top + controlRect.height / 2),
+        );
+        if (horizontalGap >= -4 && horizontalGap <= 24 && verticalCenterDelta <= 12) {
+          visualControlLeft = previousRect.left;
+          visualControlRight = Math.max(controlRect.right, previousRect.right);
+        }
+      }
+
+      const rankedVisualLabels = visualTextCandidates
+        .map((candidate) => {
+          const horizontalOverlap =
+            Math.min(visualControlRight, candidate.rect.right) -
+            Math.max(visualControlLeft, candidate.rect.left);
+          const leftAlignment = Math.abs(candidate.rect.left - visualControlLeft);
+          const aboveGap = controlRect.top - candidate.rect.bottom;
+          const leftGap = controlRect.left - candidate.rect.right;
+          const verticalCenterDelta = Math.abs(
+            candidate.rect.top +
+              candidate.rect.height / 2 -
+              (controlRect.top + controlRect.height / 2),
+          );
+          let score = Number.NEGATIVE_INFINITY;
+
+          const minimumOverlap = Math.min(24, (visualControlRight - visualControlLeft) * 0.15);
+          if (
+            aboveGap >= -4 &&
+            aboveGap <= 72 &&
+            (horizontalOverlap >= minimumOverlap || leftAlignment <= 96)
+          ) {
+            score = Math.max(score, 100 - aboveGap - leftAlignment * 0.08);
+          }
+          if (
+            leftGap >= -4 &&
+            leftGap <= 260 &&
+            verticalCenterDelta <= Math.max(28, controlRect.height)
+          ) {
+            score = Math.max(score, 82 - leftGap * 0.12 - verticalCenterDelta * 0.8);
+          }
+
+          return { score, text: candidate.text };
+        })
+        .filter((candidate) => Number.isFinite(candidate.score))
+        .sort((left, right) => right.score - left.score);
+
+      for (const candidate of rankedVisualLabels.slice(0, 2)) {
+        addLabelValue(candidate.text);
       }
     }
 

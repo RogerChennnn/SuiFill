@@ -24,3 +24,5 @@ M7 adds unit coverage for encrypted backup serialization/restore, malformed back
 M8 adds an isolated browser smoke test at a side-panel viewport plus release-time static gates for permissions, network calls, logs, scanner value access, and filler submission/click calls. See `release-checklist.md`.
 
 The v0.2.2 regressions add DOM-backed coverage for component-library labels and grouped phone controls without value reads, stable fallback signatures for unlabeled fields, and correct-password recovery of authenticated vaults affected by older empty site signatures.
+
+The v0.2.3 regression separates visible Chinese labels from their controls into unrelated layout branches, assigns realistic page rectangles, and requires correct classification of full name, phone country code, phone number, and email without exposing pre-existing control values.

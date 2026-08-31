@@ -1,6 +1,6 @@
 # SuiFill Privacy Notice
 
-Effective date: 2026-08-31
+Effective date: 2026-09-01
 
 SuiFill is a local-first browser extension for managing multiple sets of personal information and filling a user-reviewed selection into the current web page. This notice describes the data boundary implemented by the open-source extension.
 
@@ -18,7 +18,7 @@ The extension requests no persistent access to all websites. Page access is temp
 
 ## Page scanning
 
-The scanner reads bounded structural metadata from visible, editable form controls: standard labels, short nearby label text, field names and IDs, input types, autocomplete hints, placeholders, and limited accessibility labels. It skips password, hidden, file, button, checkbox, radio, disabled, read-only, and invisible controls.
+The scanner reads bounded structural metadata from visible, editable form controls: standard labels, short nearby label text, the relative on-page position of those short text fragments and controls, field names and IDs, input types, autocomplete hints, placeholders, and limited accessibility labels. Position matching is performed locally from DOM geometry; SuiFill does not capture a screenshot or use OCR. It skips password, hidden, file, button, checkbox, radio, disabled, read-only, and invisible controls.
 
 The scanner never reads the current value of an input, select, or textarea. Scan results remain in side-panel memory and disappear when the panel closes, reloads, or locks.
 

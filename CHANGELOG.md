@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.3] - 2026-09-01
+
+- Associate visually adjacent form labels with controls even when a component library places them in separate DOM branches.
+- Recognize a phone-number input that shares an overhead label with an adjacent country-code selector.
+- Add a ByteDance-style regression fixture for Chinese name, phone, and email fields while verifying that scanning still never reads current control values.
+
 ## [0.2.2] - 2026-08-31
 
 - Recover vaults affected by previously saved empty site-field signatures, preserving profile data while removing only invalid mappings.

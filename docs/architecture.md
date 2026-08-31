@@ -20,7 +20,8 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 
 - The browser toolbar action is the authorization boundary: its click grants `activeTab` for the current page and opens the side panel. Opening SuiFill directly from Chrome's side-panel picker does not grant page access.
 - The side panel asks for the active tab only after the user presses Scan and uses only the temporary grant created by the toolbar action.
-- A self-contained injected function collects bounded structural signals from visible, editable form controls, including short nearby label text used by component-library layouts.
+- A self-contained injected function collects bounded structural signals from visible, editable form controls, including short nearby label text used by component-library layouts. If semantic DOM relationships are missing, a bounded position-based fallback associates the closest short visible text above or beside a control and treats an adjacent country-code selector plus phone input as one visual group.
+- Position matching uses only DOM text fragments and element rectangles. It does not capture screenshots, perform OCR, or read control values.
 - Password, hidden, file, checkbox, radio, button, read-only, disabled, and invisible fields are skipped.
 - The scanner does not access any control's current value. Classification runs back in the extension page and scan results stay in memory only.
 - Standard `autocomplete` tokens have the highest confidence, followed by input type, labels, accessibility labels, field names, and placeholders.
