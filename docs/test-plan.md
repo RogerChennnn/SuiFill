@@ -32,3 +32,5 @@ The v0.2.4 regressions model a ByteDance-style bordered phone row in two forms: 
 The v0.2.5 regressions run the ByteDance-style row through scanning, classification, preset resolution, and actual DOM filling. They require hidden component inputs and validation text not to break grouping, keep the custom `+86` prefix unchanged, write the stored phone only to the main input, ignore incompatible stale site rules, and re-resolve a later control after an earlier event replaces its DOM node.
 
 The v0.2.6 regressions preserve non-empty controls by default, allow a user-confirmed fill instruction to replace an existing value, and prove that replacement cannot touch an unselected control. The execution result separately reports replacements and protected skips.
+
+The v0.2.7 regressions recognize simplified- and traditional-Chinese variants of email, mailbox, and electronic-mail labels, require explicit email phrases such as `电邮地址` to outrank the generic physical-address substring `地址`, and retain correct classification for detailed, mailing, and recipient-address labels.

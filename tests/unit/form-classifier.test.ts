@@ -78,4 +78,32 @@ describe('form semantic classifier', () => {
     expect(result.confidence).toBe(0.98);
     expect(result.evidence).toContain('网页代码与视觉位置相互确认');
   });
+
+  it.each([
+    '电邮',
+    '电邮地址',
+    '请输入电邮地址',
+    '联系电邮地址（必填）',
+    '邮箱地址',
+    '电子邮箱地址',
+    '电子信箱地址',
+    '电子邮件地址',
+    '邮件地址',
+    '電郵地址',
+    '電子郵箱地址',
+    '電子信箱地址',
+  ])('keeps the Chinese email label “%s” out of physical address fields', (label) => {
+    const result = classifyField(signal({ labels: [label] }));
+
+    expect(result.semantic).toBe('email');
+    expect(result.confidence).toBeGreaterThanOrEqual(0.8);
+    expect(result.evidence).not.toContain('存在相近候选');
+  });
+
+  it.each(['详细地址', '通讯地址', '请输入收件地址'])(
+    'still recognizes the physical-address label “%s”',
+    (label) => {
+      expect(classifyField(signal({ labels: [label] })).semantic).toBe('addressLine1');
+    },
+  );
 });

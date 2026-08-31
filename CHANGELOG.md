@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.7] - 2026-09-01
+
+- Recognize common simplified- and traditional-Chinese email labels including 电邮地址, 电子信箱地址, and their variants.
+- Prevent the generic Chinese word “地址” from classifying an explicit email label as a physical street address.
+- Add regression coverage that keeps email labels and physical-address labels semantically separate.
+
 ## [0.2.6] - 2026-09-01
 
 - Add an explicit per-fill replacement option so a confirmed English or Chinese profile can replace values already present on the page.

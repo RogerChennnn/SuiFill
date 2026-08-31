@@ -26,12 +26,31 @@ const RULES: Rule[] = [
       '邮箱地址',
       '电子邮箱',
       '电子邮箱地址',
+      '电子信箱',
+      '电子信箱地址',
       '电子邮件',
       '电子邮件地址',
+      '电邮',
+      '电邮地址',
+      '电邮账号',
       '邮件',
       '邮件地址',
       '联系邮箱',
+      '联系电邮',
       '常用邮箱',
+      '郵箱',
+      '郵箱地址',
+      '電子郵箱',
+      '電子郵箱地址',
+      '電子信箱',
+      '電子信箱地址',
+      '電子郵件',
+      '電子郵件地址',
+      '郵件',
+      '郵件地址',
+      '電郵',
+      '電郵地址',
+      '聯絡電郵',
     ],
     inputTypes: ['email'],
   },
@@ -468,7 +487,7 @@ function scoreRule(
   ];
 
   for (const source of sources) {
-    const matchQuality = getAliasMatchQuality(source.value, rule.aliases);
+    const matchQuality = getRuleAliasMatchQuality(source.value, rule);
     const candidateScore = source.weight * matchQuality;
     if (matchQuality > 0 && candidateScore > score) {
       score = candidateScore;
@@ -477,7 +496,7 @@ function scoreRule(
     if (matchQuality > 0) matchedCodeSignal = true;
   }
 
-  const visualMatchQuality = getAliasMatchQuality(visualLabels.join(' '), rule.aliases);
+  const visualMatchQuality = getRuleAliasMatchQuality(visualLabels.join(' '), rule);
   if (visualMatchQuality > 0) {
     score = Math.max(score, 0.88 * visualMatchQuality);
     evidence.push('匹配视觉位置标签');
@@ -506,6 +525,32 @@ function getAliasMatchQuality(value: string, aliases: string[]): number {
     if (matches) best = Math.max(best, 0.94);
   }
   return best;
+}
+
+function getRuleAliasMatchQuality(value: string, rule: Rule): number {
+  // “地址” is part of several email labels in Chinese. Once the complete label
+  // carries an email marker, the generic physical-address rule must not compete.
+  if (rule.semantic === 'addressLine1' && isEmailSpecificLabel(value)) return 0;
+  return getAliasMatchQuality(value, rule.aliases);
+}
+
+function isEmailSpecificLabel(value: string): boolean {
+  const normalizedValue = normalize(value);
+  if (!normalizedValue) return false;
+  if (/\b(?:email|e mail|electronic mail)\b/u.test(normalizedValue)) return true;
+
+  return [
+    '邮箱',
+    '电子信箱',
+    '电子邮件',
+    '邮件地址',
+    '电邮',
+    '郵箱',
+    '電子信箱',
+    '電子郵件',
+    '郵件地址',
+    '電郵',
+  ].some((marker) => normalizedValue.includes(marker));
 }
 
 function normalize(value: string): string {
