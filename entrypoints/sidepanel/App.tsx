@@ -473,7 +473,7 @@ function App() {
             <p>{isZh ? '本地资料，按需填充' : 'Local profiles, filled on your terms'}</p>
           </div>
         </div>
-        <span className="version-badge">v0.2.0</span>
+        <span className="version-badge">v0.2.1</span>
         <div
           className="language-switch"
           role="group"

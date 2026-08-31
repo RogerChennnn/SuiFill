@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.1] - 2026-08-31
+
+- Refine the side panel into a quieter Apple-inspired interface with a translucent utility bar, inset grouped sections, native-style segmented controls, and restrained system colors.
+- Increase form-control clarity, touch-target consistency, typography hierarchy, responsive spacing, and reduced-motion support without changing any stored data or filling behavior.
+
 ## [0.2.0] - 2026-08-31
 
 - Add fully separate Chinese and English data workspaces, including independent profiles, presets, and site rules.
