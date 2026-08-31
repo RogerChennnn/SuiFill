@@ -20,7 +20,7 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 
 - The browser toolbar action is the authorization boundary: its click grants `activeTab` for the current page and opens the side panel. Opening SuiFill directly from Chrome's side-panel picker does not grant page access.
 - The side panel asks for the active tab only after the user presses Scan and uses only the temporary grant created by the toolbar action.
-- A self-contained injected function collects bounded structural signals from visible, editable form controls.
+- A self-contained injected function collects bounded structural signals from visible, editable form controls, including short nearby label text used by component-library layouts.
 - Password, hidden, file, checkbox, radio, button, read-only, disabled, and invisible fields are skipped.
 - The scanner does not access any control's current value. Classification runs back in the extension page and scan results stay in memory only.
 - Standard `autocomplete` tokens have the highest confidence, followed by input type, labels, accessibility labels, field names, and placeholders.
@@ -36,7 +36,8 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 ## Per-site rules
 
 - A user can override classification for a scanned field with a standard semantic type or a custom-field reference.
-- Rules are keyed by normalized hostname and use bounded signatures composed of tag, ID, name, and visible field label. They are stored only inside the encrypted vault.
+- Rules are keyed by normalized hostname and use bounded signatures composed of tag, ID, name, and visible field label, with an ordinal fallback for otherwise unlabeled controls. They are stored only inside the encrypted vault.
+- Authenticated v0.1.x-v0.2.1 vaults containing the older empty-signature bug are repaired during migration by removing only invalid mappings and preserving all other vault data.
 - Explicit site mappings run before fill-plan generation and have full confidence, but custom-field sensitivity/default rules still apply.
 - Saving a new rule merges fields from the current scan while preserving rules for other forms on the same hostname. Deleting a custom field atomically removes mappings that reference it.
 

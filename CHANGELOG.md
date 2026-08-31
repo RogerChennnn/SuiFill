@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2] - 2026-08-31
+
+- Recover vaults affected by previously saved empty site-field signatures, preserving profile data while removing only invalid mappings.
+- Recognize short nearby labels used by component-library forms, including grouped phone country-code and number controls, without reading current form values.
+- Replace the ambiguous “incorrect password or damaged vault” notice with precise input-length, case, width, and whitespace guidance.
+
 ## [0.2.1] - 2026-08-31
 
 - Refine the side panel into a quieter Apple-inspired interface with a translucent utility bar, inset grouped sections, native-style segmented controls, and restrained system colors.

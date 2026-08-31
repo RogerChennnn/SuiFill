@@ -16,12 +16,13 @@
 - Manual lock clears the browser-session unlock key immediately.
 - High-sensitivity custom fields cannot opt into default bulk filling.
 - Presets do not duplicate personal values, and dangling preset references fail schema validation.
-- Page scanning requires an explicit click, skips password controls, never reads current control values, and remains memory-only.
+- Page scanning requires an explicit click, reads only bounded structural and short nearby label text, skips password controls, never reads current control values, and remains memory-only.
 - Fill plans remain memory-only and send only checked value/locator pairs to the scanned page document.
 - The filler skips existing values and has no submit, click, or navigation capability.
 - The target page can read values after they are filled, just as it can read manually typed values.
 - Per-site hostnames and field signatures are encrypted at rest; exact-hostname matching prevents a rule from applying to sibling or unrelated domains.
 - Site-rule custom references are validated and automatically removed if their source field is deleted.
+- Empty or otherwise invalid site-field mappings from affected older builds are removed only after authenticated decryption; unrelated encrypted profile data is preserved.
 - Exported backups contain the authenticated encrypted envelope only, are capped at 10 MB on import, and must decrypt successfully before replacement.
 - Password rotation uses a new random salt and key; permanent deletion requires an explicit typed phrase.
 

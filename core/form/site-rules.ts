@@ -147,7 +147,7 @@ function deduplicateMappings(mappings: SiteFieldMapping[]): SiteFieldMapping[] {
 }
 
 function getSignalLabel(signal: RawFieldSignal): string {
-  return (
+  const label = (
     signal.labels[0] ||
     signal.ariaLabel ||
     signal.placeholder ||
@@ -158,6 +158,7 @@ function getSignalLabel(signal: RawFieldSignal): string {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 160);
+  return label || `@ordinal:${signal.locator.ordinal}`;
 }
 
 function normalizeHostname(hostname: string): string {

@@ -158,4 +158,23 @@ describe('encrypted per-site rules', () => {
 
     expect(isVaultData(replaceWorkspace(emptyVault, 'zh-CN', workspace, TEST_TIME))).toBe(false);
   });
+
+  it('creates a stable signature for a structurally unlabeled field', () => {
+    const unlabeled = fieldSignal();
+    unlabeled.locator = { ordinal: 7, tagName: 'input', id: '', name: '' };
+    unlabeled.labels = [];
+    const mapping = createSiteMapping(unlabeled, { kind: 'semantic', semantic: 'fullName' });
+    const emptyVault = createEmptyVault(TEST_TIME);
+    const workspace = saveSiteRule(
+      emptyVault.workspaces['zh-CN'],
+      createSiteRule('jobs.example.test', [mapping], {
+        id: 'unlabeled-site-rule',
+        now: TEST_TIME,
+      }),
+      TEST_TIME,
+    );
+
+    expect(mapping.signature.label).toBe('@ordinal:7');
+    expect(isVaultData(replaceWorkspace(emptyVault, 'zh-CN', workspace, TEST_TIME))).toBe(true);
+  });
 });

@@ -367,7 +367,30 @@ export function classifyField(signal: RawFieldSignal): ClassifiedField {
 }
 
 export function classifyFields(signals: RawFieldSignal[]): ClassifiedField[] {
-  return signals.map(classifyField);
+  const classified = signals.map(classifyField);
+  return classified.map((field, index) => {
+    const next = classified[index + 1];
+    if (
+      field.signal.locator.tagName === 'select' &&
+      field.semantic === 'phone' &&
+      next?.semantic === 'phone' &&
+      next.signal.locator.tagName === 'input' &&
+      haveSharedLabel(field.signal.labels, next.signal.labels)
+    ) {
+      return {
+        ...field,
+        semantic: 'phoneCountryCode',
+        confidence: Math.max(field.confidence, 0.86),
+        evidence: [...new Set([...field.evidence, '与电话输入框共享标签'])],
+      };
+    }
+    return field;
+  });
+}
+
+function haveSharedLabel(left: string[], right: string[]): boolean {
+  const normalizedRight = new Set(right.map(normalize).filter(Boolean));
+  return left.some((label) => normalizedRight.has(normalize(label)));
 }
 
 function scoreRule(

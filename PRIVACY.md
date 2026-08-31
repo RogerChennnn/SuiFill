@@ -18,7 +18,7 @@ The extension requests no persistent access to all websites. Page access is temp
 
 ## Page scanning
 
-The scanner reads bounded structural metadata from visible, editable form controls: labels, field names and IDs, input types, autocomplete hints, placeholders, and limited accessibility labels. It skips password, hidden, file, button, checkbox, radio, disabled, read-only, and invisible controls.
+The scanner reads bounded structural metadata from visible, editable form controls: standard labels, short nearby label text, field names and IDs, input types, autocomplete hints, placeholders, and limited accessibility labels. It skips password, hidden, file, button, checkbox, radio, disabled, read-only, and invisible controls.
 
 The scanner never reads the current value of an input, select, or textarea. Scan results remain in side-panel memory and disappear when the panel closes, reloads, or locks.
 

@@ -196,22 +196,27 @@ export function isVaultData(value: unknown): value is VaultData {
 
 export function migrateVaultData(value: unknown): VaultMigrationResult | null {
   if (isVaultData(value)) return { vault: value, migrated: false };
-  if (!isLegacyVaultData(value)) return null;
+  const repaired = repairInvalidSiteMappings(value);
+  if (repaired && isVaultData(repaired)) return { vault: repaired, migrated: true };
+  const legacyValue = repaired ?? value;
+  if (!isLegacyVaultData(legacyValue)) return null;
 
-  const updatedAt = new Date(value.updatedAt);
+  const updatedAt = new Date(legacyValue.updatedAt);
   const migrationTime = Number.isNaN(updatedAt.getTime()) ? new Date() : updatedAt;
   const zh = createEmptyWorkspace('zh-CN', migrationTime);
   const en = createEmptyWorkspace('en-US', migrationTime);
 
-  zh.identities = value.identities.map((identity) => migrateLegacyIdentity(identity, 'zh-CN'));
-  zh.contacts = value.contacts.map(migrateLegacyContact);
-  zh.addresses = value.addresses.map((address) => migrateLegacyAddress(address, 'zh-CN'));
-  zh.customFields = value.customFields.map((field) => ({ ...field }));
-  zh.presets = value.presets.map((preset) => ({
+  zh.identities = legacyValue.identities.map((identity) =>
+    migrateLegacyIdentity(identity, 'zh-CN'),
+  );
+  zh.contacts = legacyValue.contacts.map(migrateLegacyContact);
+  zh.addresses = legacyValue.addresses.map((address) => migrateLegacyAddress(address, 'zh-CN'));
+  zh.customFields = legacyValue.customFields.map((field) => ({ ...field }));
+  zh.presets = legacyValue.presets.map((preset) => ({
     ...preset,
     customFieldIds: [...preset.customFieldIds],
   }));
-  zh.siteRules = value.siteRules.map((rule) => ({
+  zh.siteRules = legacyValue.siteRules.map((rule) => ({
     ...rule,
     mappings: rule.mappings.map((mapping) => ({
       signature: { ...mapping.signature },
@@ -219,7 +224,7 @@ export function migrateVaultData(value: unknown): VaultMigrationResult | null {
     })),
   }));
 
-  en.identities = value.identities.flatMap((identity) => {
+  en.identities = legacyValue.identities.flatMap((identity) => {
     if (!identity.englishName.trim()) return [];
     return [
       {
@@ -234,7 +239,7 @@ export function migrateVaultData(value: unknown): VaultMigrationResult | null {
       },
     ];
   });
-  en.addresses = value.addresses.flatMap((address) => {
+  en.addresses = legacyValue.addresses.flatMap((address) => {
     if (!address.fullAddressEn.trim()) return [];
     return [
       {
@@ -250,11 +255,50 @@ export function migrateVaultData(value: unknown): VaultMigrationResult | null {
     migrated: true,
     vault: {
       schemaVersion: VAULT_SCHEMA_VERSION,
-      createdAt: value.createdAt,
-      updatedAt: value.updatedAt,
+      createdAt: legacyValue.createdAt,
+      updatedAt: legacyValue.updatedAt,
       workspaces: { 'zh-CN': zh, 'en-US': en },
     },
   };
+}
+
+/**
+ * v0.1.x-v0.2.1 could save a manual site mapping for a completely unlabeled control.
+ * That produced an empty signature which made the next vault validation fail. Remove only
+ * those invalid mappings after authenticated decryption so the user's profile data remains
+ * recoverable; valid mappings and every other vault field are preserved.
+ */
+function repairInvalidSiteMappings(value: unknown): unknown | null {
+  if (!isRecord(value)) return null;
+  let changed = false;
+
+  const repairRules = (rules: unknown): unknown => {
+    if (!Array.isArray(rules)) return rules;
+    return rules.map((rule) => {
+      if (!isRecord(rule) || !Array.isArray(rule.mappings)) return rule;
+      const mappings = rule.mappings.filter((mapping) => {
+        const valid = isSiteFieldMapping(mapping);
+        if (!valid) changed = true;
+        return valid;
+      });
+      return mappings.length === rule.mappings.length ? rule : { ...rule, mappings };
+    });
+  };
+
+  let candidate: Record<string, unknown> = value;
+  if (value.schemaVersion === VAULT_SCHEMA_VERSION && isRecord(value.workspaces)) {
+    const workspaces: Record<string, unknown> = { ...value.workspaces };
+    for (const locale of DATA_LOCALES) {
+      const workspace = workspaces[locale];
+      if (!isRecord(workspace)) continue;
+      workspaces[locale] = { ...workspace, siteRules: repairRules(workspace.siteRules) };
+    }
+    candidate = { ...value, workspaces };
+  } else if (value.schemaVersion === 1) {
+    candidate = { ...value, siteRules: repairRules(value.siteRules) };
+  }
+
+  return changed ? candidate : null;
 }
 
 function isWorkspaceData(value: unknown, locale: DataLocale): value is WorkspaceData {

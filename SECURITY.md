@@ -22,6 +22,7 @@ The responsible-disclosure contact will be added before public release. Until th
 - Non-empty controls are never overwritten.
 - The filler contains no form submission, page-control click, or navigation call.
 - Per-site rules, including hostnames and field signatures, are encrypted at rest and never apply outside an exact normalized hostname.
+- Structurally unlabeled fields receive a bounded ordinal fallback signature. Authenticated legacy vaults affected by an older empty-signature bug discard only those invalid mappings during migration and preserve the remaining vault data.
 
 ## Backup and deletion boundary
 

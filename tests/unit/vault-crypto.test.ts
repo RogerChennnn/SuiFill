@@ -92,4 +92,28 @@ describe('vault cryptography', () => {
     expect(resumed.key.extractable).toBe(false);
     expect(resumed.sessionKey).toBe(created.sessionKey);
   });
+
+  it('unlocks with the correct password and repairs an older empty site signature', async () => {
+    const created = await createEncryptedVault('R');
+    const affectedVault = structuredClone(created.vault);
+    affectedVault.workspaces['zh-CN'].siteRules.push({
+      id: 'affected-site-rule',
+      label: 'jobs.example.test',
+      hostname: 'jobs.example.test',
+      createdAt: affectedVault.createdAt,
+      updatedAt: affectedVault.updatedAt,
+      mappings: [
+        {
+          signature: { tagName: 'input', id: '', name: '', label: '' },
+          source: { kind: 'semantic', semantic: 'fullName' },
+        },
+      ],
+    });
+    const affectedEnvelope = await resealVault(affectedVault, created.key, created.envelope);
+
+    const unlocked = await unlockEncryptedVault('R', affectedEnvelope);
+
+    expect(unlocked.migrated).toBe(true);
+    expect(unlocked.vault.workspaces['zh-CN'].siteRules[0]?.mappings).toEqual([]);
+  });
 });

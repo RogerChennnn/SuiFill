@@ -234,11 +234,13 @@ function App() {
       await startSession(await unlockEncryptedVault(password, envelope));
       clearPasswordFields();
     } catch (error) {
+      const passwordLength = Array.from(password).length;
+      const hasOuterWhitespace = /^\s|\s$/u.test(password);
       setMessage(
         error instanceof VaultUnlockError
           ? isZh
-            ? '主密码不正确，或本地信息库已经损坏。'
-            : 'The password is incorrect or the local vault is damaged.'
+            ? `无法用当前输入解锁。主密码严格区分大小写、全角/半角和空格；当前输入 ${passwordLength} 个字符${hasOuterWhitespace ? '，且首尾含有空格' : ''}。如果你确认无误，请不要删除信息库。`
+            : `The current input could not unlock the vault. Passwords distinguish case, full-width characters, and spaces. You entered ${passwordLength} character${passwordLength === 1 ? '' : 's'}${hasOuterWhitespace ? ' with leading or trailing whitespace' : ''}. Do not delete the vault if you believe this is correct.`
           : isZh
             ? '无法解锁信息库。'
             : 'The vault could not be unlocked.',
@@ -473,7 +475,7 @@ function App() {
             <p>{isZh ? '本地资料，按需填充' : 'Local profiles, filled on your terms'}</p>
           </div>
         </div>
-        <span className="version-badge">v0.2.1</span>
+        <span className="version-badge">v0.2.2</span>
         <div
           className="language-switch"
           role="group"

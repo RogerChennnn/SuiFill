@@ -35,7 +35,8 @@ export function collectPageFieldSignals(): PageScanResult {
       continue;
     }
 
-    const inputType = element instanceof HTMLInputElement ? element.type.toLowerCase() : '';
+    const inputType =
+      element instanceof HTMLInputElement ? (element.type || 'text').toLowerCase() : '';
     if (inputType === 'password') {
       skippedSensitive += 1;
       continue;
@@ -65,17 +66,73 @@ export function collectPageFieldSignals(): PageScanResult {
     }
 
     const labels = new Set<string>();
+    const addLabelValue = (value: string | null | undefined) => {
+      const text = cleanText(value);
+      if (text && text.length <= 80) labels.add(text);
+    };
+    const addLabelElement = (candidate: Element | null) => {
+      if (
+        !candidate ||
+        candidate === element ||
+        candidate.contains(element) ||
+        candidate.matches('[contenteditable]') ||
+        candidate.matches('input, select, textarea') ||
+        candidate.querySelector('input, select, textarea, [contenteditable]')
+      ) {
+        return;
+      }
+      addLabelValue(candidate.textContent);
+    };
+
     if ('labels' in element && element.labels) {
       for (const label of Array.from(element.labels)) {
-        const text = cleanText(label.textContent);
-        if (text) labels.add(text);
+        addLabelValue(label.textContent);
       }
     }
     const labelledBy = element.getAttribute('aria-labelledby');
     if (labelledBy) {
       for (const id of labelledBy.split(/\s+/)) {
-        const text = cleanText(document.getElementById(id)?.textContent);
-        if (text) labels.add(text);
+        addLabelValue(document.getElementById(id)?.textContent);
+      }
+    }
+    addLabelValue(element.getAttribute('data-label'));
+    addLabelValue(element.getAttribute('title'));
+
+    // Component libraries often render a visual label beside the control without using
+    // label[for] or ARIA. Walk only a small local DOM neighborhood and collect short text
+    // nodes that do not contain another form control. textContent never includes input values.
+    if (labels.size === 0) {
+      let branch: Element = element;
+      for (let depth = 0; depth < 4; depth += 1) {
+        const parent = branch.parentElement;
+        if (!parent) break;
+        const siblings = Array.from(parent.children);
+        const branchIndex = siblings.indexOf(branch);
+        for (let index = Math.max(0, branchIndex - 2); index < branchIndex; index += 1) {
+          addLabelElement(siblings[index] ?? null);
+        }
+
+        const controlCount = parent.querySelectorAll('input, select, textarea').length;
+        if (controlCount <= 3) {
+          for (const candidate of Array.from(
+            parent.querySelectorAll(
+              'label, legend, [class*="label"], [class*="Label"], [data-label]',
+            ),
+          )) {
+            addLabelElement(candidate);
+          }
+        }
+        if (labels.size > 0 || controlCount > 3) break;
+        branch = parent;
+      }
+    }
+
+    if (labels.size === 0) {
+      const describedBy = element.getAttribute('aria-describedby');
+      if (describedBy) {
+        for (const id of describedBy.split(/\s+/)) {
+          addLabelValue(document.getElementById(id)?.textContent);
+        }
       }
     }
 
@@ -89,7 +146,9 @@ export function collectPageFieldSignals(): PageScanResult {
       },
       inputType,
       autocomplete: cleanText(element.getAttribute('autocomplete')).toLowerCase(),
-      placeholder: cleanText(element.getAttribute('placeholder')),
+      placeholder: cleanText(
+        element.getAttribute('placeholder') || element.getAttribute('data-placeholder'),
+      ),
       ariaLabel: cleanText(element.getAttribute('aria-label')),
       labels: [...labels].slice(0, 4),
       required: element.required,

@@ -22,3 +22,5 @@ M6 adds unit coverage for hostname isolation, semantic overrides, direct custom-
 M7 adds unit coverage for encrypted backup serialization/restore, malformed backup rejection, password rotation, old-password rejection, new random salt, and permanent local storage deletion.
 
 M8 adds an isolated browser smoke test at a side-panel viewport plus release-time static gates for permissions, network calls, logs, scanner value access, and filler submission/click calls. See `release-checklist.md`.
+
+The v0.2.2 regressions add DOM-backed coverage for component-library labels and grouped phone controls without value reads, stable fallback signatures for unlabeled fields, and correct-password recovery of authenticated vaults affected by older empty site signatures.

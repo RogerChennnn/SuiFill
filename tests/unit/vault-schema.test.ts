@@ -172,7 +172,21 @@ describe('vault schema', () => {
       addresses: [],
       customFields: [],
       presets: [],
-      siteRules: [],
+      siteRules: [
+        {
+          id: 'legacy-empty-signature-rule',
+          label: 'jobs.example.test',
+          hostname: 'jobs.example.test',
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          mappings: [
+            {
+              signature: { tagName: 'input', id: '', name: '', label: '' },
+              source: { kind: 'semantic', semantic: 'fullName' },
+            },
+          ],
+        },
+      ],
     };
 
     const result = migrateVaultData(legacy);
@@ -183,6 +197,30 @@ describe('vault schema', () => {
       nationality: 'CN',
     });
     expect(result?.vault.workspaces['en-US'].identities[0]?.fullName).toBe('Example User');
+    expect(result?.vault.workspaces['zh-CN'].siteRules[0]?.mappings).toEqual([]);
+    expect(result && isVaultData(result.vault)).toBe(true);
+  });
+
+  it('repairs a current vault affected by an empty site-field signature', () => {
+    const vault = createEmptyVault(new Date('2026-01-01T00:00:00.000Z'));
+    vault.workspaces['zh-CN'].siteRules.push({
+      id: 'current-empty-signature-rule',
+      label: 'jobs.example.test',
+      hostname: 'jobs.example.test',
+      createdAt: vault.createdAt,
+      updatedAt: vault.updatedAt,
+      mappings: [
+        {
+          signature: { tagName: 'input', id: '', name: '', label: '' },
+          source: { kind: 'semantic', semantic: 'phone' },
+        },
+      ],
+    });
+
+    expect(isVaultData(vault)).toBe(false);
+    const result = migrateVaultData(vault);
+    expect(result?.migrated).toBe(true);
+    expect(result?.vault.workspaces['zh-CN'].siteRules[0]?.mappings).toEqual([]);
     expect(result && isVaultData(result.vault)).toBe(true);
   });
 });
