@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.9] - 2026-09-01
+
+- Recognize spelled English address labels such as `Address Line One` and `Address Line Two` with the same behavior as numeric and Chinese variants.
+- Restore the full-address fallback for line 1 only while keeping an empty line 2 absent from the fill plan.
+- Detect Month/Day/Year from all ordered direct field clues when a component layout hides one label behind a group heading.
+- Prevent date-part labels and `Phone Type` selectors from being classified as phone-number inputs.
+
 ## [0.2.8] - 2026-09-01
 
 - Keep parenthesized Chinese address-line labels distinct so line 1 never fills line 2 when the stored second line is empty.

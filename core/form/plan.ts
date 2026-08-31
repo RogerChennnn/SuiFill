@@ -144,7 +144,7 @@ function resolveStandardValues(
     add('province', address.province, address.label);
     add('city', address.city, address.label);
     add('district', address.district, address.label);
-    add('addressLine1', address.addressLine1, address.label);
+    add('addressLine1', address.addressLine1 || address.fullAddress, address.label);
     add('addressLine2', address.addressLine2, address.label);
     add('postalCode', address.postalCode, address.label);
     add('organization', address.company, address.label);

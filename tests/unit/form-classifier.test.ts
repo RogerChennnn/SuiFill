@@ -30,6 +30,8 @@ describe('form semantic classifier', () => {
     ['placeholder', signal({ placeholder: '请输入详细地址' }), 'addressLine1'],
     ['parenthesized address line 1', signal({ labels: ['地址（第一行）'] }), 'addressLine1'],
     ['parenthesized address line 2', signal({ labels: ['地址（第二行）'] }), 'addressLine2'],
+    ['worded English address line 1', signal({ labels: ['Address Line One'] }), 'addressLine1'],
+    ['worded English address line 2', signal({ labels: ['Address Line Two'] }), 'addressLine2'],
     ['username isolation', signal({ autocomplete: 'username', labels: ['User name'] }), 'username'],
     ['address level', signal({ autocomplete: 'billing address-level2' }), 'city'],
     ['telephone country code', signal({ autocomplete: 'tel-country-code' }), 'phoneCountryCode'],
@@ -109,6 +111,41 @@ describe('form semantic classifier', () => {
     expect(fields.map((field) => field.birthDatePart)).toEqual(['month', 'day', 'year']);
     expect(fields.every((field) => field.confidence === 0.96)).toBe(true);
   });
+
+  it('finds an English birth-date group when the section heading hides the month label', () => {
+    const fields = classifyFields([
+      signal({
+        locator: { ordinal: 0, tagName: 'select', id: '', name: '' },
+        labels: ['Date of Birth', 'Month'],
+        codeLabels: ['Date of Birth'],
+        visualLabels: ['Month', 'Date of Birth'],
+        visualGroupRole: 'prefix',
+      }),
+      signal({
+        locator: { ordinal: 1, tagName: 'input', id: '', name: '' },
+        labels: ['Day', 'Phone Number'],
+        codeLabels: ['Day'],
+        visualLabels: ['Phone Number', 'Day'],
+        visualGroupRole: 'main',
+      }),
+      signal({
+        locator: { ordinal: 2, tagName: 'input', id: '', name: '' },
+        labels: ['Year', 'Phone Number'],
+        codeLabels: ['Year'],
+        visualLabels: ['Phone Number', 'Year'],
+      }),
+    ]);
+
+    expect(fields.map((field) => field.semantic)).toEqual(['birthDate', 'birthDate', 'birthDate']);
+    expect(fields.map((field) => field.birthDatePart)).toEqual(['month', 'day', 'year']);
+  });
+
+  it.each(['Phone Type', 'Telephone Type', '电话类型'])(
+    'does not classify “%s” as a phone number',
+    (label) => {
+      expect(classifyField(signal({ labels: [label] })).semantic).toBe('unknown');
+    },
+  );
 
   it.each([
     '电邮',

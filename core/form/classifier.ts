@@ -156,8 +156,10 @@ const RULES: Rule[] = [
     autocomplete: ['address-line2'],
     aliases: [
       'address line 2',
+      'address line two',
       'address2',
       'address 2',
+      'address two',
       'apartment',
       'apt suite',
       'unit',
@@ -176,8 +178,10 @@ const RULES: Rule[] = [
     aliases: [
       'street address',
       'address line 1',
+      'address line one',
       'address1',
       'address 1',
+      'address one',
       'mailing address',
       'residential address',
       'home address',
@@ -399,6 +403,7 @@ export function classifyFields(signals: RawFieldSignal[]): ClassifiedField[] {
     })
     .map((field) => {
       if (
+        !field.birthDatePart &&
         (field.signal.visualGroupRole === 'prefix' || field.signal.visualGroupRole === 'main') &&
         hasVisualPhoneLabel(field.signal)
       ) {
@@ -472,10 +477,21 @@ function detectGroupedBirthDateParts(signals: RawFieldSignal[]): Map<number, Bir
 }
 
 function getShortDatePart(signal: RawFieldSignal): BirthDatePart | undefined {
-  const primary = normalize(getPrimarySignalLabel(signal));
-  if (['月', '月份', 'month', 'mm'].includes(primary)) return 'month';
-  if (['天', '日', 'day', 'dd'].includes(primary)) return 'day';
-  if (['年', '年份', 'year', 'yyyy'].includes(primary)) return 'year';
+  const candidates = [
+    getPrimarySignalLabel(signal),
+    ...(signal.codeLabels ?? []),
+    ...(signal.visualLabels ?? []),
+    ...signal.labels,
+    signal.ariaLabel,
+    signal.placeholder,
+    signal.locator.name,
+    signal.locator.id,
+  ].map(normalize);
+  for (const candidate of candidates) {
+    if (['月', '月份', 'month', 'mm'].includes(candidate)) return 'month';
+    if (['天', '日', 'day', 'dd'].includes(candidate)) return 'day';
+    if (['年', '年份', 'year', 'yyyy'].includes(candidate)) return 'year';
+  }
   return undefined;
 }
 
@@ -547,6 +563,13 @@ function scoreRule(
   signal: RawFieldSignal,
   rule: Rule,
 ): { semantic: Rule['semantic']; score: number; evidence: string[] } {
+  if (rule.semantic === 'phone' && isDirectDatePartLabel(signal)) {
+    return { semantic: rule.semantic, score: 0, evidence: [] };
+  }
+  if (rule.semantic === 'phone' && isPhoneTypeLabel(signal)) {
+    return { semantic: rule.semantic, score: 0, evidence: [] };
+  }
+
   let score = 0;
   const evidence: string[] = [];
   let matchedCodeSignal = false;
@@ -604,6 +627,36 @@ function scoreRule(
   }
 
   return { semantic: rule.semantic, score, evidence: [...new Set(evidence)] };
+}
+
+function isDirectDatePartLabel(signal: RawFieldSignal): boolean {
+  const primary = normalize(
+    signal.codeLabels?.[0] ||
+      signal.labels[0] ||
+      signal.ariaLabel ||
+      signal.placeholder ||
+      signal.locator.name ||
+      signal.locator.id,
+  );
+  return [
+    '月',
+    '月份',
+    '天',
+    '日',
+    '年',
+    '年份',
+    'month',
+    'day',
+    'year',
+    'mm',
+    'dd',
+    'yyyy',
+  ].includes(primary);
+}
+
+function isPhoneTypeLabel(signal: RawFieldSignal): boolean {
+  const primary = normalize(getPrimarySignalLabel(signal));
+  return /^(?:phone type|telephone type|mobile type|电话类型|手機類型|手机类型)$/u.test(primary);
 }
 
 function getAliasMatchQuality(value: string, aliases: string[]): number {

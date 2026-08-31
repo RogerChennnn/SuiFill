@@ -39,7 +39,7 @@ SuiFill is a Manifest V3 Chrome/Edge extension built with WXT, React, and TypeSc
 - The filler protects non-empty controls by default. An explicit preview option can replace only selected controls for that single fill action; the option is not persisted. The filler refuses values longer than a control's declared maximum and reports fill, replacement, protected-skip, and failure counts without returning page values.
 - The filler dispatches normal input/change events but contains no submit, requestSubmit, button-click, navigation, or purchase action.
 - Controls are queried again immediately before each instruction because a framework may replace later input nodes after an earlier input/change event.
-- Address line 1 and line 2 resolve only from their matching stored fields. Split birth-date controls receive only their corresponding numeric month, day, or year component.
+- Address line 1 resolves from its matching stored field or, when that is empty, the stored full-address value. Address line 2 resolves only from its own stored field and never reuses line 1/full address. Split birth-date controls receive only their corresponding numeric month, day, or year component.
 
 ## Per-site rules
 

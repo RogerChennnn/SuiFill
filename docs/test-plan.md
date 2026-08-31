@@ -36,3 +36,5 @@ The v0.2.6 regressions preserve non-empty controls by default, allow a user-conf
 The v0.2.7 regressions recognize simplified- and traditional-Chinese variants of email, mailbox, and electronic-mail labels, require explicit email phrases such as `电邮地址` to outrank the generic physical-address substring `地址`, and retain correct classification for detailed, mailing, and recipient-address labels.
 
 The v0.2.8 regressions distinguish parenthesized Chinese address line 1/2 labels, require an empty stored line 2 to produce no instruction, parse one stored ISO birth date into month/day/year controls, match an unpadded month to a numeric select option, and model an IBKR-style date row following a phone section without cross-classification.
+
+The v0.2.9 regressions add spelled English `Address Line One/Two` labels, verify that full address can fall back only to line 1, recover Month/Day/Year when a group heading obscures the first direct label, and reject `Phone Type` as a phone-number semantic in both languages.

@@ -190,6 +190,35 @@ describe('fill plan builder', () => {
     expect(plan[0]!.value).toBe('1 Fictional Road');
   });
 
+  it('uses a stored full address only as the line 1 fallback', () => {
+    const { workspace, preset } = createPopulatedVault();
+    const address = workspace.addresses[0]!;
+    const workspaceWithFullAddress = {
+      ...workspace,
+      addresses: [
+        {
+          ...address,
+          addressLine1: '',
+          addressLine2: '',
+          fullAddress: '9 Example Boulevard',
+        },
+      ],
+    };
+
+    const plan = buildFillPlan(
+      [
+        classified(0, 'addressLine1', 'Address Line One'),
+        classified(1, 'addressLine2', 'Address Line Two'),
+      ],
+      workspaceWithFullAddress,
+      preset,
+    );
+
+    expect(plan.map((item) => [item.semantic, item.value])).toEqual([
+      ['addressLine1', '9 Example Boulevard'],
+    ]);
+  });
+
   it('splits a stored birth date into month, day, and year values', () => {
     const { workspace, preset } = createPopulatedVault();
     const month = classified(0, 'birthDate', '月');
