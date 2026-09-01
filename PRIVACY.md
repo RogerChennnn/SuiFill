@@ -10,6 +10,18 @@ The user may enter identity details, contact details, addresses, custom fields, 
 
 The stored envelope contains AES-GCM ciphertext plus the random salt, random initialization vector, algorithm metadata, format versions, and timestamps needed to unlock it. The master password is never persisted or transmitted. After a successful unlock, a raw unlock key is retained only in browser session storage for one fixed hour so the side panel can be reopened without another password entry. Manual lock, expiry, vault deletion, or browser-session termination clears it.
 
+## Data categories handled
+
+For Chrome Web Store disclosure purposes, SuiFill handles the following categories on the user's device:
+
+- **Personally identifiable information:** user-entered names, usernames, contact details, addresses, personal links, nationality or region, and identifiers placed in custom fields.
+- **Authentication information:** the local master password is processed transiently to derive the vault encryption key. It is never stored or transmitted. SuiFill skips website password controls and does not scan, store, or fill website passwords.
+- **Location:** only locations the user deliberately enters, such as an address, country, region, state, province, or city. SuiFill does not request or derive GPS location or the user's IP address.
+- **Limited web history:** when the user explicitly saves a site-specific matching rule, the exact hostname is stored in the encrypted vault with the rule. SuiFill does not request the browser history permission or collect a general browsing history.
+- **Website content:** after an explicit scan action, SuiFill reads bounded form labels and structural metadata from the current page as described below. It does not capture screenshots, read page media, or collect existing form values.
+
+SuiFill is not designed to collect health information, financial or payment information, personal communications, or user-activity telemetry.
+
 ## Local processing and network use
 
 SuiFill has no server, account system, analytics, advertising, telemetry, or remote runtime code. It does not send the vault, password, browsing history, form structure, scan results, or usage events to the developer or another service.
@@ -44,10 +56,16 @@ The user can permanently remove the local encrypted vault from the extension. Th
 
 Vault data remains in browser extension storage until the user edits it, deletes the vault, clears extension data, or uninstalls the extension according to the browser's behavior. SuiFill does not keep a server-side copy.
 
+## Chrome Web Store Limited Use disclosure
+
+SuiFill's use of information received through Chrome extension APIs complies with the Chrome Web Store User Data Policy, including the Limited Use requirements. Data is used only to provide or improve SuiFill's single purpose: locally managing user-created profiles and filling user-confirmed fields on the current page.
+
+SuiFill does not sell user data, transfer it for advertising or unrelated purposes, use it to determine creditworthiness or for lending, or allow the developer or other humans to read it. The only ordinary disclosure occurs when the user explicitly confirms filling selected values into a destination page, after which that destination page can read those values just as if the user had typed them manually. An encrypted backup is created only when the user explicitly exports one.
+
 ## Security limitations
 
 Encryption at rest does not protect data while the vault is unlocked from malware, a compromised browser or operating system, malicious extension updates, physical observation, or a destination page receiving confirmed values. SuiFill accepts any non-empty password for usability, including one character, but longer unique passwords are materially safer. Users should install releases from a trusted source, review fill previews, and keep encrypted backups in a safe location.
 
 ## Changes and contact
 
-Material privacy changes must be documented in the repository and release notes before a release. A responsible project contact will be added before public distribution.
+Material privacy changes must be documented in the repository and release notes before a release. Questions, privacy requests, and security concerns may be submitted through the public SuiFill repository at https://github.com/hljhs/SuiFill/issues.
