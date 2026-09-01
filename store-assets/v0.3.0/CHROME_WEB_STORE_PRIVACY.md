@@ -63,4 +63,4 @@ Select all three:
 
 Use this URL after the public repository has been created and the updated policy pushed:
 
-`https://github.com/hljhs/SuiFill/blob/main/PRIVACY.md`
+`https://github.com/RogerChennnn/SuiFill/blob/main/PRIVACY.md`

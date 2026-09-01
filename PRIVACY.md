@@ -68,4 +68,4 @@ Encryption at rest does not protect data while the vault is unlocked from malwar
 
 ## Changes and contact
 
-Material privacy changes must be documented in the repository and release notes before a release. Questions, privacy requests, and security concerns may be submitted through the public SuiFill repository at https://github.com/hljhs/SuiFill/issues.
+Material privacy changes must be documented in the repository and release notes before a release. Questions, privacy requests, and security concerns may be submitted through the public SuiFill repository at https://github.com/RogerChennnn/SuiFill/issues.

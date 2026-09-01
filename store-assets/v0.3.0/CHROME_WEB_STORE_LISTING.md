@@ -13,11 +13,11 @@ This file contains ready-to-paste listing copy for the English and Simplified Ch
 - Small promo tile: `small-promo-440x280.png`
 - Marquee promo tile: `marquee-promo-1400x560.png` (optional, but prepared)
 
-Do not paste placeholder URLs containing `<YOUR_GITHUB_USERNAME>` into the dashboard. Once the repository is public, these are suitable patterns:
+Use these URLs after the public repository has been created:
 
-- Homepage: `https://github.com/<YOUR_GITHUB_USERNAME>/SuiFill`
-- Support: `https://github.com/<YOUR_GITHUB_USERNAME>/SuiFill/issues`
-- Privacy policy: `https://github.com/<YOUR_GITHUB_USERNAME>/SuiFill/blob/main/PRIVACY.md`
+- Homepage: `https://github.com/RogerChennnn/SuiFill`
+- Support: `https://github.com/RogerChennnn/SuiFill/issues`
+- Privacy policy: `https://github.com/RogerChennnn/SuiFill/blob/main/PRIVACY.md`
 
 ## English locale
 
