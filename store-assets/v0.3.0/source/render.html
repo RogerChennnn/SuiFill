@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SuiFill Chrome Web Store Assets</title>
+    <style>
+      :root {
+        --ink: #202421;
+        --ink-soft: #4f5752;
+        --muted: #727a75;
+        --canvas: #ecefed;
+        --surface: #f7f8f7;
+        --raised: #fbfcfb;
+        --inset: #e8ebe9;
+        --line: rgba(35, 48, 41, 0.11);
+        --green: #376f57;
+        --green-deep: #244b3b;
+        --green-rich: #2e624d;
+        --green-pale: #e1eee6;
+        --blue-pale: #e6f0f7;
+        --amber-pale: #fff1d6;
+        --red-pale: #fae7e5;
+        --shadow: 0 18px 46px rgba(30, 43, 36, 0.12), 0 2px 8px rgba(30, 43, 36, 0.06);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          'Microsoft YaHei',
+          sans-serif;
+        color: var(--ink);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--canvas);
+      }
+      body {
+        display: grid;
+        place-items: start;
+      }
+      button,
+      input {
+        font: inherit;
+      }
+      .asset {
+        position: relative;
+        overflow: hidden;
+        background: var(--canvas);
+      }
+      .asset[hidden] {
+        display: none;
+      }
+      .logo-img {
+        display: block;
+        object-fit: contain;
+      }
+      .eyebrow {
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 760;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 26px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 720;
+      }
+      .pill.green {
+        color: #246343;
+        background: #e2f1e7;
+      }
+      .pill.amber {
+        color: #7a5a19;
+        background: var(--amber-pale);
+      }
+      .pill.blue {
+        color: #275b76;
+        background: var(--blue-pale);
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #5fc57e;
+        box-shadow: 0 0 0 5px rgba(95, 197, 126, 0.14);
+      }
+
+      /* Promotional artwork */
+      .promo-bg {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 78% 18%, rgba(209, 239, 222, 0.18), transparent 30%),
+          linear-gradient(135deg, #315f4c 0%, #214737 100%);
+      }
+      .promo-bg::before,
+      .promo-bg::after {
+        content: '';
+        position: absolute;
+        border: 1px solid rgba(232, 245, 237, 0.16);
+        border-radius: 42px;
+        transform: rotate(-8deg);
+      }
+      .promo-bg::before {
+        width: 420px;
+        height: 280px;
+        right: -110px;
+        top: -90px;
+      }
+      .promo-bg::after {
+        width: 300px;
+        height: 210px;
+        right: -80px;
+        bottom: -120px;
+      }
+      .logo-knockout {
+        width: 62px;
+        height: 62px;
+        background: #e9f4ed;
+        -webkit-mask: url('../../../public/icon/128.png') center / contain no-repeat;
+        mask: url('../../../public/icon/128.png') center / contain no-repeat;
+      }
+      .promo-wordmark {
+        color: #f7faf8;
+        font-weight: 760;
+        letter-spacing: -0.035em;
+      }
+      .promo-rule {
+        height: 1px;
+        background: rgba(239, 248, 242, 0.22);
+      }
+      .promo-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .promo-tag {
+        padding: 7px 10px;
+        border: 1px solid rgba(238, 248, 241, 0.22);
+        border-radius: 999px;
+        color: #d8ebe0;
+        font-size: 11px;
+        font-weight: 620;
+      }
+      .ui-float {
+        background: rgba(247, 250, 248, 0.94);
+        border: 1px solid rgba(255, 255, 255, 0.44);
+        box-shadow: 0 26px 68px rgba(7, 28, 19, 0.28);
+        color: var(--ink);
+      }
+      .ui-float .bar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .ui-float .bar i {
+        display: block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #cfd6d2;
+      }
+      .ui-float .bar i:first-child {
+        background: #6fc486;
+      }
+      .ui-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        border-top: 1px solid var(--line);
+      }
+      .ui-check {
+        display: grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        background: var(--green-pale);
+        color: var(--green);
+        font-weight: 900;
+        font-size: 11px;
+      }
+      .ui-line {
+        height: 7px;
+        border-radius: 999px;
+        background: #cbd4cf;
+      }
+
+      #small {
+        width: 440px;
+        height: 280px;
+      }
+      #small .small-copy {
+        position: absolute;
+        z-index: 2;
+        left: 28px;
+        top: 28px;
+        width: 230px;
+      }
+      #small .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      #small .logo-knockout {
+        width: 46px;
+        height: 46px;
+      }
+      #small .promo-wordmark {
+        font-size: 31px;
+      }
+      #small .small-title {
+        margin: 24px 0 0;
+        color: #e7f2eb;
+        font-size: 17px;
+        line-height: 1.35;
+        font-weight: 650;
+        letter-spacing: -0.015em;
+      }
+      #small .small-ui {
+        position: absolute;
+        z-index: 3;
+        width: 176px;
+        height: 176px;
+        right: -18px;
+        bottom: -22px;
+        border-radius: 26px;
+        padding: 16px;
+        transform: rotate(-3deg);
+      }
+      #small .small-ui .ui-row {
+        padding: 11px 0;
+      }
+
+      #marquee {
+        width: 1400px;
+        height: 560px;
+      }
+      #marquee .marquee-copy {
+        position: absolute;
+        z-index: 2;
+        left: 104px;
+        top: 82px;
+        width: 550px;
+      }
+      #marquee .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      #marquee .promo-wordmark {
+        font-size: 48px;
+      }
+      #marquee h1 {
+        margin: 62px 0 18px;
+        width: 620px;
+        color: #f2f8f4;
+        font-size: 55px;
+        line-height: 1.04;
+        letter-spacing: -0.045em;
+      }
+      #marquee p {
+        margin: 0;
+        width: 510px;
+        color: #cfe2d7;
+        font-size: 19px;
+        line-height: 1.55;
+      }
+      #marquee .promo-tags {
+        margin-top: 28px;
+      }
+      #marquee .promo-tag {
+        font-size: 13px;
+        padding: 9px 13px;
+      }
+      #marquee .marquee-ui {
+        position: absolute;
+        z-index: 3;
+        width: 490px;
+        height: 428px;
+        right: 92px;
+        top: 68px;
+        border-radius: 34px;
+        padding: 25px;
+        transform: rotate(1.4deg);
+      }
+      #marquee .marquee-ui .ui-row {
+        padding: 19px 0;
+      }
+      #marquee .marquee-ui .ui-check {
+        width: 25px;
+        height: 25px;
+        border-radius: 7px;
+        font-size: 14px;
+      }
+      .preview-button {
+        margin-top: 20px;
+        display: grid;
+        place-items: center;
+        height: 52px;
+        border-radius: 16px;
+        background: var(--green);
+        color: white;
+        font-size: 14px;
+        font-weight: 730;
+      }
+
+      /* Store screenshots */
+      .shot {
+        width: 1280px;
+        height: 800px;
+        background: #e8ebe9;
+      }
+      .browser {
+        position: absolute;
+        left: 26px;
+        right: 26px;
+        top: 22px;
+        bottom: 22px;
+        overflow: hidden;
+        border: 1px solid rgba(32, 36, 33, 0.11);
+        border-radius: 24px;
+        background: #f7f8f7;
+        box-shadow: 0 24px 64px rgba(30, 43, 36, 0.14);
+      }
+      .browser-top {
+        height: 51px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 0 18px;
+        border-bottom: 1px solid var(--line);
+        background: #f3f5f4;
+      }
+      .browser-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #c7ceca;
+      }
+      .browser-dot:nth-child(1) {
+        background: #efb8ae;
+      }
+      .browser-dot:nth-child(2) {
+        background: #edcf86;
+      }
+      .browser-dot:nth-child(3) {
+        background: #8bc7a0;
+      }
+      .address-bar {
+        margin-left: 9px;
+        display: flex;
+        align-items: center;
+        width: 520px;
+        height: 30px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #e9ecea;
+        color: #78807b;
+        font-size: 11px;
+      }
+      .browser-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 412px;
+        height: calc(100% - 51px);
+      }
+      .webpage {
+        position: relative;
+        overflow: hidden;
+        background: #f4f5f4;
+      }
+      .web-top {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 38px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(251, 252, 251, 0.92);
+      }
+      .sample-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 760;
+        letter-spacing: -0.02em;
+      }
+      .sample-mark {
+        width: 25px;
+        height: 25px;
+        border: 2px solid #83908a;
+        border-radius: 8px 4px 8px 4px;
+      }
+      .web-nav {
+        display: flex;
+        gap: 24px;
+        color: #747c77;
+        font-size: 12px;
+      }
+      .form-shell {
+        width: 720px;
+        margin: 28px auto 0;
+        padding: 29px 34px 33px;
+        border: 1px solid rgba(32, 36, 33, 0.08);
+        border-radius: 22px;
+        background: #fbfcfb;
+        box-shadow: 0 10px 28px rgba(30, 43, 36, 0.05);
+      }
+      .form-shell h2 {
+        margin: 0;
+        font-size: 24px;
+        letter-spacing: -0.03em;
+      }
+      .form-shell .lead {
+        margin: 8px 0 23px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 17px;
+      }
+      .field.full {
+        grid-column: 1 / -1;
+      }
+      .field label {
+        display: block;
+        margin-bottom: 7px;
+        color: #4f5752;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .fake-input {
+        display: flex;
+        align-items: center;
+        height: 45px;
+        padding: 0 14px;
+        border: 1px solid #cfd5d1;
+        border-radius: 11px;
+        background: white;
+        color: #303632;
+        font-size: 13px;
+      }
+      .fake-input.empty {
+        color: #a1a7a3;
+      }
+      .fake-input.focus {
+        border-color: #6c9a83;
+        box-shadow: 0 0 0 3px rgba(55, 111, 87, 0.12);
+      }
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 11px;
+        margin-top: 24px;
+      }
+      .soft-btn,
+      .primary-btn {
+        height: 42px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        font-size: 12px;
+        font-weight: 720;
+      }
+      .soft-btn {
+        background: #eff1f0;
+        color: #646c67;
+      }
+      .primary-btn {
+        border-color: var(--green);
+        background: var(--green);
+        color: white;
+      }
+
+      .panel {
+        overflow: hidden;
+        border-left: 1px solid var(--line);
+        background: #eff1f0;
+      }
+      .panel-head {
+        position: relative;
+        z-index: 3;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(243, 245, 244, 0.94);
+      }
+      .panel-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 21px;
+        font-weight: 780;
+        letter-spacing: -0.04em;
+      }
+      .panel-brand img {
+        width: 35px;
+        height: 35px;
+      }
+      .lang-switch {
+        display: flex;
+        padding: 3px;
+        border-radius: 11px;
+        background: #e1e4e2;
+        color: #626a65;
+        font-size: 11px;
+        font-weight: 730;
+      }
+      .lang-switch span {
+        min-width: 39px;
+        padding: 8px 9px;
+        text-align: center;
+        border-radius: 8px;
+      }
+      .lang-switch .active {
+        background: #f8f9f8;
+        color: var(--green-deep);
+        box-shadow: 0 2px 7px rgba(30, 43, 36, 0.13);
+      }
+      .panel-scroll {
+        height: calc(100% - 68px);
+        overflow: hidden;
+        padding: 16px;
+      }
+      .card {
+        position: relative;
+        padding: 20px;
+        border: 1px solid rgba(32, 36, 33, 0.075);
+        border-radius: 20px;
+        background: var(--surface);
+        box-shadow: 0 7px 22px rgba(30, 43, 36, 0.055);
+      }
+      .card + .card {
+        margin-top: 14px;
+      }
+      .card h3 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: -0.025em;
+      }
+      .card p {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.55;
+      }
+      .ready-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+      }
+      .shield {
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+        background: var(--green-pale);
+        color: var(--green);
+      }
+      .shield svg {
+        width: 20px;
+        height: 20px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin-top: 16px;
+        overflow: hidden;
+        border-radius: 14px;
+        background: var(--inset);
+      }
+      .stat {
+        padding: 11px 4px;
+        text-align: center;
+        border-right: 1px solid rgba(32, 36, 33, 0.1);
+      }
+      .stat:last-child {
+        border-right: 0;
+      }
+      .stat b {
+        display: block;
+        color: var(--green-deep);
+        font-size: 14px;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin-top: 14px;
+        padding: 4px;
+        border-radius: 13px;
+        background: #e6e9e7;
+      }
+      .tab {
+        padding: 10px 4px;
+        border-radius: 10px;
+        color: #68706b;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 720;
+      }
+      .tab.active {
+        background: var(--raised);
+        color: var(--green-deep);
+        box-shadow: 0 2px 8px rgba(30, 43, 36, 0.12);
+      }
+      .profile-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 14px;
+        padding: 13px 4px 4px;
+      }
+      .profile-row strong {
+        display: block;
+        font-size: 13px;
+      }
+      .profile-row span {
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: var(--green-pale);
+        color: var(--green-deep);
+        font-size: 13px;
+        font-weight: 760;
+      }
+      .profile-main {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .micro-btn {
+        padding: 8px 11px;
+        border-radius: 10px;
+        background: var(--green);
+        color: white;
+        font-size: 10px;
+        font-weight: 730;
+      }
+      .site-strip {
+        display: grid;
+        grid-template-columns: 1.4fr 0.7fr 0.7fr;
+        margin: 12px 0;
+        overflow: hidden;
+        border-radius: 13px;
+        background: #e4e7e5;
+      }
+      .site-strip > div {
+        padding: 11px 8px;
+        text-align: center;
+        border-right: 1px solid rgba(32, 36, 33, 0.09);
+      }
+      .site-strip > div:last-child {
+        border-right: 0;
+      }
+      .site-strip b {
+        display: block;
+        color: var(--green-deep);
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .site-strip span {
+        color: var(--muted);
+        font-size: 9px;
+      }
+      .result-list {
+        overflow: hidden;
+        border: 1px solid rgba(32, 36, 33, 0.08);
+        border-radius: 15px;
+        background: #f4f6f4;
+      }
+      .result {
+        display: grid;
+        grid-template-columns: 46px 1fr;
+        gap: 9px;
+        align-items: center;
+        min-height: 58px;
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(32, 36, 33, 0.08);
+      }
+      .result:last-child {
+        border-bottom: 0;
+      }
+      .confidence {
+        display: grid;
+        place-items: center;
+        width: 39px;
+        height: 25px;
+        border-radius: 9px;
+        color: #2b6847;
+        background: #dff0e5;
+        font-size: 9px;
+        font-weight: 800;
+      }
+      .result b {
+        display: block;
+        font-size: 11px;
+      }
+      .result small {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 9px;
+      }
+      .fill-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 13px 12px;
+        border-bottom: 1px solid rgba(32, 36, 33, 0.08);
+        background: #edf6f0;
+      }
+      .fill-row:last-child {
+        border-bottom: 0;
+      }
+      .check {
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        width: 19px;
+        height: 19px;
+        border-radius: 5px;
+        background: #2d8a4b;
+        color: white;
+        font-size: 12px;
+        font-weight: 900;
+      }
+      .fill-row b {
+        display: block;
+        font-size: 10px;
+      }
+      .fill-row small {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 8.5px;
+      }
+      .safe-note {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 11px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--amber-pale);
+        color: #735721;
+        font-size: 9px;
+        font-weight: 650;
+      }
+      .panel-primary {
+        display: grid;
+        place-items: center;
+        margin-top: 12px;
+        height: 46px;
+        border-radius: 14px;
+        background: var(--green);
+        color: white;
+        font-size: 12px;
+        font-weight: 760;
+      }
+      .secure-list {
+        margin-top: 15px;
+        overflow: hidden;
+        border-top: 1px solid var(--line);
+      }
+      .secure-item {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-height: 52px;
+        border-bottom: 1px solid var(--line);
+        color: #555d58;
+        font-size: 11px;
+      }
+      .secure-check {
+        color: #2c9355;
+        font-size: 18px;
+      }
+      .feature-note {
+        position: absolute;
+        z-index: 5;
+        left: 48px;
+        bottom: 42px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 11px 15px;
+        border: 1px solid rgba(32, 36, 33, 0.09);
+        border-radius: 14px;
+        background: rgba(250, 251, 250, 0.92);
+        box-shadow: 0 10px 28px rgba(30, 43, 36, 0.09);
+        color: #535b56;
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .cn .form-shell {
+        margin-top: 24px;
+      }
+      .cn .form-shell h2 {
+        font-size: 23px;
+      }
+      .cn .field label {
+        font-size: 12px;
+      }
+      .cn .card p {
+        font-size: 11px;
+      }
+
+      .caption-ribbon {
+        position: absolute;
+        left: 52px;
+        top: 96px;
+        z-index: 6;
+        padding: 9px 13px;
+        border: 1px solid rgba(55, 111, 87, 0.12);
+        border-radius: 999px;
+        background: rgba(226, 239, 231, 0.92);
+        color: var(--green-deep);
+        font-size: 11px;
+        font-weight: 760;
+        box-shadow: 0 5px 16px rgba(30, 43, 36, 0.07);
+      }
+    </style>
+  </head>
+  <body>
+    <main id="root"></main>
+    <script>
+      const logo = '<img class="logo-img" src="../../../public/icon/128.png" alt="SuiFill" />';
+
+      function promoSmall() {
+        return `<section id="small" class="asset">
+          <div class="promo-bg"></div>
+          <div class="small-copy">
+            <div class="brand-lockup"><span class="logo-knockout"></span><span class="promo-wordmark">SuiFill</span></div>
+            <p class="small-title">Local profiles.<br>Your data. Your control.</p>
+          </div>
+          <div class="small-ui ui-float">
+            <div class="bar"><i></i><i></i><i></i></div>
+            <div style="margin:16px 0 10px;font-size:12px;font-weight:760">Review before fill</div>
+            <div class="ui-row"><span class="ui-check">✓</span><span class="ui-line" style="width:92px"></span></div>
+            <div class="ui-row"><span class="ui-check">✓</span><span class="ui-line" style="width:76px"></span></div>
+            <div class="ui-row"><span class="ui-check">✓</span><span class="ui-line" style="width:102px"></span></div>
+          </div>
+        </section>`;
+      }
+
+      function promoMarquee() {
+        return `<section id="marquee" class="asset">
+          <div class="promo-bg"></div>
+          <div class="marquee-copy">
+            <div class="brand-lockup"><span class="logo-knockout"></span><span class="promo-wordmark">SuiFill</span></div>
+            <h1>Fill forms<br>on your terms.</h1>
+            <p>Separate profiles, local encryption and a clear review step before anything is filled.</p>
+            <div class="promo-tags"><span class="promo-tag">Local-first</span><span class="promo-tag">Encrypted</span><span class="promo-tag">Never auto-submits</span></div>
+          </div>
+          <div class="marquee-ui ui-float">
+            <div class="bar"><i></i><i></i><i></i><span style="margin-left:auto;color:#7a827d;font-size:12px">Fill preview</span></div>
+            <div style="margin:28px 0 17px"><span class="pill green">Ready to review</span></div>
+            <div style="font-size:24px;font-weight:770;letter-spacing:-.035em">Confirm each field</div>
+            <div class="ui-row"><span class="ui-check">✓</span><div><div style="font-size:14px;font-weight:730">Full name → Full name</div><div class="ui-line" style="width:205px;margin-top:8px"></div></div></div>
+            <div class="ui-row"><span class="ui-check">✓</span><div><div style="font-size:14px;font-weight:730">Email → Email address</div><div class="ui-line" style="width:240px;margin-top:8px"></div></div></div>
+            <div class="ui-row"><span class="ui-check">✓</span><div><div style="font-size:14px;font-weight:730">Phone → Phone number</div><div class="ui-line" style="width:175px;margin-top:8px"></div></div></div>
+            <div class="preview-button">Fill selected fields</div>
+          </div>
+        </section>`;
+      }
+
+      const browserTop = `<div class="browser-top"><span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span><div class="address-bar">https://apply.example.test/profile</div></div>`;
+
+      function panelHeader(lang = 'en') {
+        return `<div class="panel-head"><div class="panel-brand">${logo}<span>SuiFill</span></div><div class="lang-switch"><span class="${lang === 'zh' ? 'active' : ''}">中文</span><span class="${lang === 'en' ? 'active' : ''}">EN</span></div></div>`;
+      }
+
+      function webpage(lang = 'en', filled = false) {
+        if (lang === 'zh') {
+          return `<div class="webpage cn">
+            <div class="web-top"><div class="sample-brand"><span class="sample-mark"></span>示例人才平台</div><div class="web-nav"><span>首页</span><span>职位</span><span>申请记录</span></div></div>
+            <div class="form-shell">
+              <h2>基本信息</h2><p class="lead">请确认以下资料后继续申请。</p>
+              <div class="form-grid">
+                <div class="field"><label>姓名</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? '林安然' : '请输入姓名'}</div></div>
+                <div class="field"><label>手机号码</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? '+86 138 0000 0000' : '请输入手机号码'}</div></div>
+                <div class="field full"><label>电子邮箱地址</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? 'anran.lin@example.test' : '请输入电子邮箱地址'}</div></div>
+                <div class="field full"><label>详细地址</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? '示例市和平路 88 号' : '请输入详细地址'}</div></div>
+                <div class="field"><label>城市</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? '示例市' : '请输入城市'}</div></div>
+                <div class="field"><label>邮政编码</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? '100000' : '请输入邮政编码'}</div></div>
+              </div>
+              <div class="form-actions"><button class="soft-btn">保存进度</button><button class="primary-btn">继续</button></div>
+            </div>
+          </div>`;
+        }
+        return `<div class="webpage">
+          <div class="web-top"><div class="sample-brand"><span class="sample-mark"></span>Example Careers</div><div class="web-nav"><span>Home</span><span>Open roles</span><span>My applications</span></div></div>
+          <div class="form-shell">
+            <h2>Contact information</h2><p class="lead">Review your information before continuing.</p>
+            <div class="form-grid">
+              <div class="field"><label>First name</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? 'Maya' : 'Enter first name'}</div></div>
+              <div class="field"><label>Last name</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? 'Chen' : 'Enter last name'}</div></div>
+              <div class="field full"><label>Email address</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? 'maya.chen@example.test' : 'Enter email address'}</div></div>
+              <div class="field full"><label>Phone number</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? '+65 8123 4567' : 'Enter phone number'}</div></div>
+              <div class="field full"><label>Address line 1</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? '88 Example Road' : 'Building number and street name'}</div></div>
+              <div class="field"><label>City</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? 'Singapore' : 'Enter city'}</div></div>
+              <div class="field"><label>Postal code</label><div class="fake-input ${filled ? '' : 'empty'}">${filled ? '018956' : 'Enter postal code'}</div></div>
+            </div>
+            <div class="form-actions"><button class="soft-btn">Save progress</button><button class="primary-btn">Continue</button></div>
+          </div>
+        </div>`;
+      }
+
+      function englishOverview() {
+        return `<section class="asset shot"><div class="browser">${browserTop}<div class="browser-body">${webpage('en', false)}<aside class="panel">${panelHeader('en')}<div class="panel-scroll">
+          <div class="card"><div class="ready-row"><div class="shield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.8-2.9 8.2-7 10-4.1-1.8-7-5.2-7-10V6l7-3z"/><path d="M9 12l2 2 4-5"/></svg></div><div><span class="pill green">Securely unlocked</span><h3 style="margin-top:8px">English profile space is ready</h3><p>Chinese and English profiles, presets and site rules stay separate.</p></div></div><div class="stats"><div class="stat"><b>1</b><span>Identity</span></div><div class="stat"><b>1</b><span>Contact</span></div><div class="stat"><b>1</b><span>Address</span></div><div class="stat"><b>0</b><span>Custom</span></div></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between"><h3>My profiles</h3><span class="pill green">Encrypted</span></div><div class="tabs"><span class="tab active">Identity</span><span class="tab">Contact</span><span class="tab">Address</span><span class="tab">Custom</span></div><div class="profile-row"><div class="profile-main"><div class="avatar">MC</div><div><strong>Maya Chen</strong><span>Maya · Chen</span></div></div><span class="micro-btn">Edit</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between"><h3>Review & fill</h3><span class="pill blue">Never submits</span></div><p>Grant temporary access to scan the current page, then review every field before filling.</p><div class="panel-primary">Scan this page</div></div>
+        </div></aside></div></div><div class="caption-ribbon">Separate local profiles for every context</div></section>`;
+      }
+
+      function englishReview() {
+        return `<section class="asset shot"><div class="browser">${browserTop}<div class="browser-body">${webpage('en', true)}<aside class="panel">${panelHeader('en')}<div class="panel-scroll">
+          <div class="site-strip"><div><b>apply.example.test</b><span>Domain</span></div><div><b>7</b><span>Recognized</span></div><div><b>7</b><span>Review</span></div></div>
+          <div class="card" style="padding:16px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div><div class="eyebrow">Review & fill</div><h3 style="margin-top:5px">Fill preview</h3></div><span class="pill green">7 selected</span></div><div class="result-list">
+            <div class="fill-row"><span class="check">✓</span><div><b>First name → First name</b><small>From “Maya — English” · Maya</small></div></div>
+            <div class="fill-row"><span class="check">✓</span><div><b>Last name → Last name</b><small>From “Maya — English” · Chen</small></div></div>
+            <div class="fill-row"><span class="check">✓</span><div><b>Email address → Email</b><small>maya.chen@example.test</small></div></div>
+            <div class="fill-row"><span class="check">✓</span><div><b>Phone number → Phone</b><small>+65 8123 4567</small></div></div>
+            <div class="fill-row"><span class="check">✓</span><div><b>Address line 1 → Address line 1</b><small>88 Example Road</small></div></div>
+          </div><div class="safe-note"><span>●</span> Existing page values stay protected unless you choose to replace them.</div><div class="panel-primary">Fill 7 selected fields</div><p style="text-align:center">The page is never submitted automatically.</p></div>
+          <div class="card" style="padding:16px"><div class="eyebrow">Site rules</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px"><strong style="font-size:12px">Encrypted mappings for this site</strong><span class="pill green">Local</span></div></div>
+        </div></aside></div></div><div class="caption-ribbon">Review every match before anything is filled</div></section>`;
+      }
+
+      function chineseOverview() {
+        return `<section class="asset shot cn"><div class="browser">${browserTop}<div class="browser-body">${webpage('zh', true)}<aside class="panel">${panelHeader('zh')}<div class="panel-scroll">
+          <div class="card"><div class="ready-row"><div class="shield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.8-2.9 8.2-7 10-4.1-1.8-7-5.2-7-10V6l7-3z"/><path d="M9 12l2 2 4-5"/></svg></div><div><span class="pill green">已安全解锁</span><h3 style="margin-top:8px">中文资料空间已就绪</h3><p>中文与英文资料、预设和网站规则彼此独立。</p></div></div><div class="stats"><div class="stat"><b>1</b><span>身份</span></div><div class="stat"><b>1</b><span>联系</span></div><div class="stat"><b>1</b><span>地址</span></div><div class="stat"><b>0</b><span>自定义</span></div></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between"><h3>我的资料</h3><span class="pill green">已加密</span></div><div class="tabs"><span class="tab active">身份</span><span class="tab">联系</span><span class="tab">地址</span><span class="tab">自定义</span></div><div class="profile-row"><div class="profile-main"><div class="avatar">林</div><div><strong>林安然</strong><span>安然 · 林</span></div></div><span class="micro-btn">编辑</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between"><h3>识别、预览并填写</h3><span class="pill blue">不会自动提交</span></div><p>临时授权扫描当前页面，逐项确认后再填写。</p><div class="panel-primary">重新扫描当前页面</div></div>
+        </div></aside></div></div><div class="caption-ribbon">中英文资料空间彼此独立</div></section>`;
+      }
+
+      function securityShot() {
+        return `<section class="asset shot"><div class="browser">${browserTop}<div class="browser-body">${webpage('en', false)}<aside class="panel">${panelHeader('en')}<div class="panel-scroll">
+          <div class="card"><div class="eyebrow">Security & backup</div><div class="ready-row" style="margin-top:10px"><div class="shield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><div><span class="pill green">Local-first</span><h3 style="margin-top:8px">Your data stays on your device</h3><p>No account, cloud vault or analytics connection is required.</p></div></div>
+            <div class="secure-list"><div class="secure-item"><span class="secure-check">✓</span><span>Master password is never saved or uploaded</span></div><div class="secure-item"><span class="secure-check">✓</span><span>AES-GCM 256-bit authenticated encryption</span></div><div class="secure-item"><span class="secure-check">✓</span><span>No browsing history, cookies or blanket website access</span></div></div>
+          </div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between"><div><div class="eyebrow">Encrypted backup</div><h3 style="margin-top:7px">Move your vault safely</h3></div><span class="pill amber">Sensitive action</span></div><p>Export an encrypted backup. The file contains no master password or readable profile values.</p><div class="panel-primary">Export encrypted backup</div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:10px"><span class="dot"></span><strong style="font-size:11px">No remote connection · Local encrypted storage</strong></div></div>
+        </div></aside></div></div><div class="caption-ribbon">Privacy by design, not by promise</div></section>`;
+      }
+
+      const views = {
+        small: promoSmall,
+        marquee: promoMarquee,
+        'en-overview': englishOverview,
+        'en-review': englishReview,
+        'zh-overview': chineseOverview,
+        security: securityShot,
+      };
+      const asset = new URLSearchParams(location.search).get('asset') || 'small';
+      document.documentElement.lang = asset.startsWith('zh') ? 'zh-CN' : 'en';
+      document.getElementById('root').innerHTML = (views[asset] || views.small)();
+    </script>
+  </body>
+</html>

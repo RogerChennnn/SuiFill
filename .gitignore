@@ -16,6 +16,7 @@ stats.html
 stats-*.json
 .wxt
 web-ext.config.ts
+store-assets/**/raw/
 
 # Editor directories and files
 .vscode/*
