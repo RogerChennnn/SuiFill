@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest an improvement that fits SuiFill's local-first purpose.
+title: '[Feature]: '
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user problem would this address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed experience
+      description: Describe the preferred user flow and privacy expectations.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Product boundaries
+      options:
+        - label: This request does not require automatic form submission.
+          required: true
+        - label: This request can preserve local-first data handling.
+          required: true

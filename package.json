@@ -3,6 +3,14 @@
   "description": "Local-first multi-profile form filling for Chrome and Edge.",
   "private": true,
   "version": "0.3.0",
+  "homepage": "https://github.com/RogerChennnn/SuiFill#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RogerChennnn/SuiFill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RogerChennnn/SuiFill/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "wxt",
